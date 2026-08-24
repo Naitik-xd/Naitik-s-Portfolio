@@ -78,6 +78,24 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
       systemInstruction: {
         parts: [{ text: systemPrompt }]
       },
+      tools: [{
+        functionDeclarations: [
+          {
+            name: "switchTheme",
+            description: "Switches the website's theme between light and dark mode. Use this when the user asks to change the theme, colors, or switch to light/dark mode.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                theme: {
+                  type: "STRING",
+                  description: "The target theme mode. Should be either 'light' or 'dark'."
+                }
+              },
+              required: ["theme"]
+            }
+          }
+        ]
+      }],
       generationConfig: {
         temperature: 0.8,
         maxOutputTokens: 1500 // Allow enough tokens for thinking models
@@ -119,11 +137,25 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
     }
 
     let reply = "I couldn't process that request at this time.";
+    let action = null;
     if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
-      reply = data.candidates[0].content.parts[0].text;
+      const parts = data.candidates[0].content.parts;
+      const functionCallPart = parts.find(p => p.functionCall);
+      const textPart = parts.find(p => p.text);
+
+      if (functionCallPart) {
+        const functionName = functionCallPart.functionCall.name;
+        const args = functionCallPart.functionCall.args;
+        if (functionName === 'switchTheme') {
+          action = { type: 'switchTheme', theme: args.theme };
+          reply = textPart ? textPart.text : `Switched the website to ${args.theme} mode!`;
+        }
+      } else if (textPart) {
+        reply = textPart.text;
+      }
     }
 
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply, action });
   } catch (error) {
     console.error("Function error:", error);
     return res.status(500).json({ error: "Internal Server Error" });

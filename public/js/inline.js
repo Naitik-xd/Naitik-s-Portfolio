@@ -1222,6 +1222,16 @@
           const data = await res.json();
           const reply = data.reply || "Oops! Couldn't understand the response.";
           
+          if (data.action && data.action.type === 'switchTheme') {
+            const isLight = data.action.theme === 'light';
+            if (isLight) {
+              document.body.classList.add('light-mode');
+            } else {
+              document.body.classList.remove('light-mode');
+            }
+            localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
+          }
+
           typing.classList.remove('visible');
           addMessage(reply, 'bot');
 
