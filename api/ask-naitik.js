@@ -26,17 +26,17 @@ Projects:
 2. Lumine-bay — a full-stack AI-powered salon booking platform built during a hackathon. It allows users to book appointments and consult with an AI stylist for an upgraded experience. Features a dedicated admin panel for salon owners. Live at https://luminae-bay.vercel.app/ (Note: Some backend functions might be disabled to save resources, but ~80% of the features are fully functional).
 3. StageMap — Built in 8 hours for HackDevengers 10 — StageMap lets anyone in tier-2/3 India discover, post, and RSVP to local events with AI-assisted creation and verified digital tickets. Live at https://na1t1k-hackathon3.vercel.app/ (Note: All the projects are just made for hackathon purpose and they are not applicable for real world).
 Achievements: Ideathon 2025 Top 100 of 1400. Ideathon 2026 Participated. MDI Gurugram Photography 4th of 135.
-Badges & Certificates: 109+ Google Cloud Skills Boost badges. Professional Certificates available at: https://drive.google.com/drive/folders/1Mvz1GK2IPJupNpuuxeZEsHP81d7avSaj?usp=sharing
-Photography Portfolio / Image Samples: https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing (Provide this link whenever asked for photographs, image links, or samples).
+Badges & Certificates: 109+ Google Cloud Skills Boost badges. [Professional Certificates](https://drive.google.com/drive/folders/1Mvz1GK2IPJupNpuuxeZEsHP81d7avSaj?usp=sharing)
+Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
 Contact: Naitik.270810@outlook.com
 Social Links:
-- GitHub: https://github.com/Naitik-xd
-- LinkedIn: https://www.linkedin.com/in/na1t1k
-- X (Twitter): https://x.com/NA1T1Kxd
-- Google Skills Profile: https://www.skills.google/public_profiles/38b0b619-88ee-4eea-845e-97512f415e2e
-- Google Developer Profile: https://g.dev/na1t1k
-Rules: Keep answers concise. Use bullet points for lists instead of a single boring paragraph. Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws; do not provide, generate, or suggest using any copyrighted material, and emphasize that Naitik's work is original and legally compliant.`;
+- [GitHub](https://github.com/Naitik-xd)
+- [LinkedIn](https://www.linkedin.com/in/na1t1k)
+- [X (Twitter)](https://x.com/NA1T1Kxd)
+- [Google Skills Profile](https://www.skills.google/public_profiles/38b0b619-88ee-4eea-845e-97512f415e2e)
+- [Google Developer Profile](https://g.dev/na1t1k)
+Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws.`;
 
     const apiKey = process.env.GAPI_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {

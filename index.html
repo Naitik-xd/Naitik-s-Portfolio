@@ -574,7 +574,7 @@
             <h2 class="split-heading font-sora font-extrabold text-4xl md:text-5xl lg:text-6xl text-white leading-tight">
               I don't write code. I speak AI.
             </h2>
-            <p class="blur-entry font-geist text-textDim text-base md:text-lg leading-relaxed font-light">
+            <p class="blur-entry font-space text-white/80 text-base md:text-lg leading-[1.8] tracking-wide font-normal">
               I build with prompts, curiosity, and tools most people haven't heard of yet. Operating at the intersection of generative AI, design logic, and rapid prototyping, turning raw ideas into real products without writing a single line of traditional code.
             </p>
           </div>
@@ -1226,6 +1226,18 @@
       .chat-msg.bot ol { list-style-type: decimal; padding-left: 20px; margin-bottom: 8px; }
       .chat-msg.bot ol:last-child { margin-bottom: 0; }
       .chat-msg.bot li { margin-bottom: 4px; }
+      .chat-msg.bot a {
+        color: #4a9eff;
+        text-decoration: underline;
+        text-decoration-color: rgba(74, 158, 255, 0.4);
+        text-underline-offset: 3px;
+        transition: all 0.2s;
+        word-break: break-word;
+      }
+      .chat-msg.bot a:hover {
+        color: #7abfff;
+        text-decoration-color: #7abfff;
+      }
       .chat-msg.bot strong { color: white; font-weight: 600; }
       .chat-msg.user {
         background: linear-gradient(135deg, #1a6fd4, #4a9eff);
