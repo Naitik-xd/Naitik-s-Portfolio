@@ -1,3 +1,24 @@
+// Initialize global tracking for IP rate limiting and bans
+global.ipTracker = global.ipTracker || {};
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW = 3 * 60 * 60 * 1000; // 3 hours
+const BAN_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+// Helper for webhooks
+async function notifyDiscord(msg) {
+  if (process.env.DISCORD_WEBHOOK_URL) {
+    try {
+      await fetch(process.env.DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: msg })
+      });
+    } catch (e) {
+      console.error("Webhook error:", e);
+    }
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -12,9 +33,49 @@ export default async function handler(req, res) {
   }
 
   try {
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+
     // Vercel parses JSON bodies automatically if Content-Type is application/json
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { message, history } = body;
+
+    // Handle admin unban command
+    if (message && message.startsWith('/admin-unban')) {
+      const parts = message.split(' ');
+      if (parts.length >= 3 && process.env.ADMIN_PASSWORD && parts[2] === process.env.ADMIN_PASSWORD) {
+        const targetIp = parts[1];
+        delete global.ipTracker[targetIp];
+        return res.status(200).json({ reply: `Success: IP ${targetIp} has been unbanned and rate limits reset.` });
+      }
+    }
+
+    const now = Date.now();
+    let tracker = global.ipTracker[ip] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW, strikes: 0, bannedUntil: 0 };
+    
+    // Reset counters if window passed
+    if (now > tracker.resetTime) {
+      tracker.count = 0;
+      tracker.resetTime = now + RATE_LIMIT_WINDOW;
+    }
+    
+    // Check if banned
+    if (tracker.bannedUntil > now) {
+      return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
+    }
+    
+    // Check rate limit
+    if (tracker.count >= RATE_LIMIT_MAX) {
+      if (tracker.count === RATE_LIMIT_MAX) {
+         notifyDiscord(`⚠️ **Rate Limit Reached**: IP \`${ip}\` hit the ${RATE_LIMIT_MAX} message limit.`);
+         tracker.count++; // Increment so we only notify once
+         global.ipTracker[ip] = tracker;
+      }
+      return res.status(200).json({ reply: "You've reached the message limit. Please try again in a few hours." });
+    }
+    
+    // Increment message count
+    tracker.count++;
+    global.ipTracker[ip] = tracker;
 
     const systemPrompt = `You are NA Assistant on Naitik Agarwal portfolio. Be casual and helpful.
 Naitik is an AI Explorer, Prompt Engineer, Vibe Coder and Creator.
@@ -93,6 +154,20 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
               },
               required: ["theme"]
             }
+          },
+          {
+            name: "reportAbuse",
+            description: "Use this tool to report the user if they are being highly hostile, aggressively swearing, or repeatedly typing random gibberish/spam. This issues a strike against the user.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                reason: {
+                  type: "STRING",
+                  description: "The reason for reporting the user."
+                }
+              },
+              required: ["reason"]
+            }
           }
         ]
       }],
@@ -149,6 +224,21 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
         if (functionName === 'switchTheme') {
           action = { type: 'switchTheme', theme: args.theme };
           reply = textPart ? textPart.text : `Switched the website to ${args.theme} mode!`;
+        } else if (functionName === 'reportAbuse') {
+          // Handle abuse strike
+          tracker.strikes++;
+          global.ipTracker[ip] = tracker;
+          
+          if (tracker.strikes >= 3) {
+             tracker.bannedUntil = now + BAN_DURATION;
+             global.ipTracker[ip] = tracker;
+             notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
+             reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
+          } else if (tracker.strikes === 2) {
+             reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
+          } else {
+             reply = "I didn't quite catch that. Did you have a question about Naitik's work?";
+          }
         }
       } else if (textPart) {
         reply = textPart.text;
