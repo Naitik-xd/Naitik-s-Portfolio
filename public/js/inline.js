@@ -1220,16 +1220,23 @@
           }
 
           const data = await res.json();
-          const reply = data.reply || "Oops! Couldn't understand the response.";
+          let reply = data.reply || "Oops! Couldn't understand the response.";
           
           if (data.action && data.action.type === 'switchTheme') {
-            const isLight = data.action.theme === 'light';
-            if (isLight) {
-              document.body.classList.add('light-mode');
+            const targetTheme = data.action.theme;
+            const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+            
+            if (currentTheme === targetTheme) {
+              reply = `The website is already in ${targetTheme} mode.`;
             } else {
-              document.body.classList.remove('light-mode');
+              const isLight = targetTheme === 'light';
+              if (isLight) {
+                document.body.classList.add('light-mode');
+              } else {
+                document.body.classList.remove('light-mode');
+              }
+              localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
             }
-            localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
           }
 
           typing.classList.remove('visible');
