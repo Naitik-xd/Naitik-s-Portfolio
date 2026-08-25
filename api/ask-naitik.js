@@ -33,7 +33,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const ip = rawIp.split(',')[0].trim();
 
     // Vercel parses JSON bodies automatically if Content-Type is application/json
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
@@ -42,11 +43,37 @@ export default async function handler(req, res) {
     // Handle admin unban command
     if (message && message.startsWith('/admin-unban')) {
       const parts = message.split(' ');
-      if (parts.length >= 3 && process.env.ADMIN_PASSWORD && parts[2] === process.env.ADMIN_PASSWORD) {
-        const targetIp = parts[1];
+      const pass = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : null;
+      
+      if (pass && message.includes(pass)) {
+        let targetIp = parts[1] ? parts[1].trim().toLowerCase() : '';
+        if (targetIp === 'me') targetIp = ip;
+        
         delete global.ipTracker[targetIp];
         return res.status(200).json({ reply: `Success: IP ${targetIp} has been unbanned and rate limits reset.` });
       }
+      return res.status(200).json({ reply: "Failed to unban: Incorrect password or format. Use: /admin-unban [IP or 'me'] [PASSWORD]" });
+    }
+
+    // Handle admin ban command
+    if (message && message.startsWith('/admin-ban')) {
+      const parts = message.split(' ');
+      const pass = process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.trim() : null;
+      
+      if (pass && message.includes(pass)) {
+        let targetIp = parts[1] ? parts[1].trim().toLowerCase() : '';
+        if (targetIp === 'me') targetIp = ip;
+        
+        const now = Date.now();
+        global.ipTracker[targetIp] = global.ipTracker[targetIp] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW, strikes: 0, bannedUntil: 0 };
+        global.ipTracker[targetIp].bannedUntil = now + BAN_DURATION;
+        global.ipTracker[targetIp].strikes = 3;
+        
+        notifyDiscord(`🛡️ **Manual Ban Admin**: IP \`${targetIp}\` was just manually BANNED for 24 hours.`);
+        
+        return res.status(200).json({ reply: `Success: IP ${targetIp} has been manually banned for 24 hours.` });
+      }
+      return res.status(200).json({ reply: "Failed to ban: Incorrect password or format. Use: /admin-ban [IP] [PASSWORD]" });
     }
 
     const now = Date.now();
@@ -232,7 +259,9 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
           if (tracker.strikes >= 3) {
              tracker.bannedUntil = now + BAN_DURATION;
              global.ipTracker[ip] = tracker;
-             notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
+             if (tracker.strikes === 3) {
+                 notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
+             }
              reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
           } else if (tracker.strikes === 2) {
              reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
