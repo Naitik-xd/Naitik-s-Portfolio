@@ -1351,23 +1351,33 @@
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </div>
       </div>
-      
-      <div id="chat-messages">
-        <div class="chat-msg bot">Hi there! Ask me anything about Naitik's skills, projects, or achievements.</div>
+
+      <div id="chat-welcome-screen" style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 24px; background: transparent; z-index: 10;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h3 style="font-size: 1.2rem; font-weight: bold; margin-bottom: 8px; color: white;">Welcome!</h3>
+          <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">To personalize your experience, please introduce yourself.</p>
+        </div>
+        <input type="text" id="welcome-name" placeholder="Your Name (Required)" style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid rgba(74, 158, 255, 0.2); background: rgba(0,0,0,0.2); color: white; font-family: 'Geist', sans-serif; font-size: 0.9rem;" maxlength="50" required>
+        <input type="text" id="welcome-contact" placeholder="Email or Phone (Optional)" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid rgba(74, 158, 255, 0.2); background: rgba(0,0,0,0.2); color: white; font-family: 'Geist', sans-serif; font-size: 0.9rem;" maxlength="100">
+        <button id="welcome-submit" style="width: 100%; padding: 12px; border-radius: 8px; background: #4a9eff; color: #fff; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s; font-size: 0.9rem;">Start Chatting</button>
       </div>
       
-      <div class="chat-typing" id="chat-typing">
+      <div id="chat-messages" style="display: none;">
+        <div class="chat-msg bot" id="chat-welcome-msg">Hi there! Ask me anything about Naitik's skills, projects, or achievements.</div>
+      </div>
+      
+      <div class="chat-typing" id="chat-typing" style="display: none;">
         <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
       </div>
 
-      <div id="chat-suggestions">
+      <div id="chat-suggestions" style="display: none;">
         <div class="chat-chip" id="chip-1">What can Naitik do?</div>
         <div class="chat-chip" id="chip-2">His projects 🚀</div>
         <div class="chat-chip" id="chip-3">Top achievements</div>
         <div class="chat-chip" id="chip-4">Contact him</div>
       </div>
 
-      <div id="chat-input-area">
+      <div id="chat-input-area" style="display: none;">
         <input type="text" id="chat-input" placeholder="Ask me about Naitik..." >
         <button id="chat-send" aria-label="Send Chat Message" >
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>

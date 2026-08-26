@@ -46,7 +46,15 @@ export default async function handler(req, res) {
     const ip = rawIp.split(',')[0].trim();
 
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { message, history } = body;
+    const { message, history, userName, userContact } = body;
+
+    function sanitize(input, maxLength = 100) {
+      if (!input || typeof input !== 'string') return null;
+      return input.replace(/[<>]/g, '').trim().substring(0, maxLength);
+    }
+
+    const safeName = sanitize(userName) || "A visitor";
+    const safeContact = sanitize(userContact) || "Not provided";
 
     // Handle admin unban command
     if (message && message.startsWith('/admin-unban')) {
@@ -96,7 +104,10 @@ export default async function handler(req, res) {
       message_count: 0, 
       reset_time: now + RATE_LIMIT_WINDOW, 
       strikes: 0, 
-      banned_until: 0 
+      banned_until: 0,
+      user_name: safeName,
+      user_email: safeContact,
+      last_active: 0
     };
     
     // Reset counters if window passed
@@ -110,6 +121,18 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
     }
     
+    // Check session timeout for Discord notification (60 minutes)
+    const SESSION_TIMEOUT = 60 * 60 * 1000;
+    if (now - (tracker.last_active || 0) > SESSION_TIMEOUT && message && !message.startsWith('/admin')) {
+      const contactText = safeContact !== "Not provided" ? `\n📞 Contact: ${safeContact}` : '';
+      notifyDiscord(`🔔 **${safeName}** (IP: \`${ip}\`) started a new chat session!${contactText}`);
+    }
+
+    // Update tracker info
+    tracker.last_active = now;
+    if (safeName !== "A visitor") tracker.user_name = safeName;
+    if (safeContact !== "Not provided") tracker.user_email = safeContact;
+
     // Check rate limit
     if (tracker.message_count >= RATE_LIMIT_MAX) {
       if (tracker.message_count === RATE_LIMIT_MAX) {
@@ -125,6 +148,7 @@ export default async function handler(req, res) {
     await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
 
     const systemPrompt = `You are NA Assistant on Naitik Agarwal portfolio. Be casual and helpful.
+The user you are speaking with is named: ${safeName}. Greet them or use their name naturally if appropriate.
 Naitik is an AI Explorer, Prompt Engineer, Vibe Coder and Creator.
 Motto: Skills matter more than degrees.
 Skills: Color Grading, Vibe Coding, Prompt Engineering, AI Tool Scouting, No-Code Development, Photography, Canva and AI Design.

@@ -1113,6 +1113,32 @@
 
       let chatHistory = [];
       let isChatOpen = false;
+      window.chatUserName = '';
+      window.chatUserContact = '';
+
+      function submitWelcomeForm() {
+        const nameInput = document.getElementById('welcome-name');
+        const contactInput = document.getElementById('welcome-contact');
+        
+        const nameVal = nameInput.value.trim();
+        if (!nameVal) {
+          alert('Please enter your name to continue.');
+          return;
+        }
+        
+        window.chatUserName = nameVal;
+        window.chatUserContact = contactInput.value.trim();
+        
+        document.getElementById('chat-welcome-screen').style.display = 'none';
+        document.getElementById('chat-messages').style.display = 'flex';
+        document.getElementById('chat-input-area').style.display = 'flex';
+        document.getElementById('chat-suggestions').style.display = 'flex';
+        
+        const welcomeMsg = document.getElementById('chat-welcome-msg');
+        if (welcomeMsg) {
+          welcomeMsg.textContent = `Hi ${window.chatUserName}! I am Naitik's AI assistant. Ask me anything about his skills, projects, or achievements.`;
+        }
+      }
 
       // Show notification dot after 3s if not open
       setTimeout(() => {
@@ -1207,7 +1233,7 @@
             headers: {
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ message: text, history: chatHistory })
+            body: JSON.stringify({ message: text, history: chatHistory, userName: window.chatUserName, userContact: window.chatUserContact })
           });
 
           if (!res.ok) {
@@ -1262,12 +1288,16 @@ window.toggleChat = toggleChat;
 window.handleEnter = handleEnter;
 window.sendSuggested = sendSuggested;
 window.sendChatMessage = sendChatMessage;
+window.submitWelcomeForm = submitWelcomeForm;
 
 function attachEvents() {
     if (window._chatEventsAttached) return;
     window._chatEventsAttached = true;
     const bubble = document.getElementById('chat-widget-bubble');
     if (bubble) bubble.addEventListener('click', toggleChat);
+
+    const welcomeSubmitBtn = document.getElementById('welcome-submit');
+    if (welcomeSubmitBtn) welcomeSubmitBtn.addEventListener('click', submitWelcomeForm);
 
     const closeBtn = document.querySelector('.chat-close');
     if (closeBtn) closeBtn.addEventListener('click', (e) => {
