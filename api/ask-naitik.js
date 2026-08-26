@@ -1,5 +1,5 @@
-// Initialize global tracking for IP rate limiting and bans
-global.ipTracker = global.ipTracker || {};
+import { createClient } from '@supabase/supabase-js';
+
 const RATE_LIMIT_MAX = 20;
 const RATE_LIMIT_WINDOW = 3 * 60 * 60 * 1000; // 3 hours
 const BAN_DURATION = 24 * 60 * 60 * 1000; // 24 hours
@@ -19,6 +19,11 @@ async function notifyDiscord(msg) {
   }
 }
 
+let supabase = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -32,11 +37,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method Not Allowed" });
   }
 
+  if (!supabase) {
+    return res.status(500).json({ error: "Supabase credentials are not configured in environment variables." });
+  }
+
   try {
-    const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
     const ip = rawIp.split(',')[0].trim();
 
-    // Vercel parses JSON bodies automatically if Content-Type is application/json
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const { message, history } = body;
 
@@ -49,7 +57,7 @@ export default async function handler(req, res) {
         let targetIp = parts[1] ? parts[1].trim().toLowerCase() : '';
         if (targetIp === 'me') targetIp = ip;
         
-        delete global.ipTracker[targetIp];
+        await supabase.from('rate_limits').delete().eq('ip_address', targetIp);
         return res.status(200).json({ reply: `Success: IP ${targetIp} has been unbanned and rate limits reset.` });
       }
       return res.status(200).json({ reply: "Failed to unban: Incorrect password or format. Use: /admin-unban [IP or 'me'] [PASSWORD]" });
@@ -65,9 +73,13 @@ export default async function handler(req, res) {
         if (targetIp === 'me') targetIp = ip;
         
         const now = Date.now();
-        global.ipTracker[targetIp] = global.ipTracker[targetIp] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW, strikes: 0, bannedUntil: 0 };
-        global.ipTracker[targetIp].bannedUntil = now + BAN_DURATION;
-        global.ipTracker[targetIp].strikes = 3;
+        await supabase.from('rate_limits').upsert({
+          ip_address: targetIp,
+          banned_until: now + BAN_DURATION,
+          strikes: 3,
+          message_count: 0,
+          reset_time: now + RATE_LIMIT_WINDOW
+        }, { onConflict: 'ip_address' });
         
         notifyDiscord(`🛡️ **Manual Ban Admin**: IP \`${targetIp}\` was just manually BANNED for 24 hours.`);
         
@@ -77,32 +89,40 @@ export default async function handler(req, res) {
     }
 
     const now = Date.now();
-    let tracker = global.ipTracker[ip] || { count: 0, resetTime: now + RATE_LIMIT_WINDOW, strikes: 0, bannedUntil: 0 };
+    let { data: trackerData } = await supabase.from('rate_limits').select('*').eq('ip_address', ip).single();
+    
+    let tracker = trackerData || { 
+      ip_address: ip, 
+      message_count: 0, 
+      reset_time: now + RATE_LIMIT_WINDOW, 
+      strikes: 0, 
+      banned_until: 0 
+    };
     
     // Reset counters if window passed
-    if (now > tracker.resetTime) {
-      tracker.count = 0;
-      tracker.resetTime = now + RATE_LIMIT_WINDOW;
+    if (now > tracker.reset_time) {
+      tracker.message_count = 0;
+      tracker.reset_time = now + RATE_LIMIT_WINDOW;
     }
     
     // Check if banned
-    if (tracker.bannedUntil > now) {
+    if (tracker.banned_until > now) {
       return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
     }
     
     // Check rate limit
-    if (tracker.count >= RATE_LIMIT_MAX) {
-      if (tracker.count === RATE_LIMIT_MAX) {
+    if (tracker.message_count >= RATE_LIMIT_MAX) {
+      if (tracker.message_count === RATE_LIMIT_MAX) {
          notifyDiscord(`⚠️ **Rate Limit Reached**: IP \`${ip}\` hit the ${RATE_LIMIT_MAX} message limit.`);
-         tracker.count++; // Increment so we only notify once
-         global.ipTracker[ip] = tracker;
+         tracker.message_count++; // Increment so we only notify once
+         await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
       }
       return res.status(200).json({ reply: "You've reached the message limit. Please try again in a few hours." });
     }
     
     // Increment message count
-    tracker.count++;
-    global.ipTracker[ip] = tracker;
+    tracker.message_count++;
+    await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
 
     const systemPrompt = `You are NA Assistant on Naitik Agarwal portfolio. Be casual and helpful.
 Naitik is an AI Explorer, Prompt Engineer, Vibe Coder and Creator.
@@ -254,19 +274,22 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
         } else if (functionName === 'reportAbuse') {
           // Handle abuse strike
           tracker.strikes++;
-          global.ipTracker[ip] = tracker;
           
           if (tracker.strikes >= 3) {
-             tracker.bannedUntil = now + BAN_DURATION;
-             global.ipTracker[ip] = tracker;
+             tracker.banned_until = now + BAN_DURATION;
+             await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
+             
              if (tracker.strikes === 3) {
                  notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
              }
              reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
-          } else if (tracker.strikes === 2) {
-             reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
           } else {
-             reply = "I didn't quite catch that. Did you have a question about Naitik's work?";
+             await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
+             if (tracker.strikes === 2) {
+               reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
+             } else {
+               reply = "I didn't quite catch that. Did you have a question about Naitik's work?";
+             }
           }
         }
       } else if (textPart) {
