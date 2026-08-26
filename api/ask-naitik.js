@@ -89,7 +89,7 @@ export default async function handler(req, res) {
           reset_time: now + RATE_LIMIT_WINDOW
         }, { onConflict: 'ip_address' });
         
-        notifyDiscord(`🛡️ **Manual Ban Admin**: IP \`${targetIp}\` was just manually BANNED for 24 hours.`);
+        await notifyDiscord(`🛡️ **Manual Ban Admin**: IP \`${targetIp}\` was just manually BANNED for 24 hours.`);
         
         return res.status(200).json({ reply: `Success: IP ${targetIp} has been manually banned for 24 hours.` });
       }
@@ -121,11 +121,14 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
     }
     
-    // Check session timeout for Discord notification (60 minutes)
+    // Check session timeout for Discord notification (60 minutes) or new name
     const SESSION_TIMEOUT = 60 * 60 * 1000;
-    if (now - (tracker.last_active || 0) > SESSION_TIMEOUT && message && !message.startsWith('/admin')) {
+    const isNewSession = now - (tracker.last_active || 0) > SESSION_TIMEOUT;
+    const isNewName = safeName !== "A visitor" && tracker.user_name !== safeName;
+
+    if ((isNewSession || isNewName) && message && !message.startsWith('/admin')) {
       const contactText = safeContact !== "Not provided" ? `\n📞 Contact: ${safeContact}` : '';
-      notifyDiscord(`🔔 **${safeName}** (IP: \`${ip}\`) started a new chat session!${contactText}`);
+      await notifyDiscord(`🔔 **${safeName}** (IP: \`${ip}\`) started a new chat session!${contactText}`);
     }
 
     // Update tracker info
@@ -136,7 +139,7 @@ export default async function handler(req, res) {
     // Check rate limit
     if (tracker.message_count >= RATE_LIMIT_MAX) {
       if (tracker.message_count === RATE_LIMIT_MAX) {
-         notifyDiscord(`⚠️ **Rate Limit Reached**: IP \`${ip}\` hit the ${RATE_LIMIT_MAX} message limit.`);
+         await notifyDiscord(`⚠️ **Rate Limit Reached**: IP \`${ip}\` hit the ${RATE_LIMIT_MAX} message limit.`);
          tracker.message_count++; // Increment so we only notify once
          await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
       }
@@ -304,7 +307,7 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
              await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
              
              if (tracker.strikes === 3) {
-                 notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
+                 await notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
              }
              reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
           } else {
