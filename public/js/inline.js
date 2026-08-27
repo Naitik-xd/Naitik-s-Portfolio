@@ -1145,6 +1145,12 @@
           return;
         }
         
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(contactVal)) {
+          alert('Please enter a valid email address to continue.');
+          return;
+        }
+        
         window.chatUserName = nameVal;
         window.chatUserContact = contactVal;
         
