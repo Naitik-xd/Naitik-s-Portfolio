@@ -1138,6 +1138,14 @@
         if (welcomeMsg) {
           welcomeMsg.textContent = `Hi ${window.chatUserName}! I am Naitik's AI assistant. Ask me anything about his skills, projects, or achievements.`;
         }
+
+        fetch('/api/chat-start', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ userName: window.chatUserName, userContact: window.chatUserContact })
+        }).catch(e => console.error('Failed to notify backend:', e));
       }
 
       // Show notification dot after 3s if not open

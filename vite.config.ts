@@ -12,14 +12,16 @@ export default defineConfig(() => {
         name: 'netlify-functions-mock',
         configureServer(server) {
           server.middlewares.use(async (req, res, next) => {
-            if (req.url?.startsWith('/api/ask-naitik')) {
+            if (req.url?.startsWith('/api/')) {
               try {
+                // Determine which file to load based on the url (e.g. /api/chat-start -> api/chat-start.js)
+                const apiPath = req.url.split('?')[0]; // remove query strings
                 let body = '';
                 req.on('data', chunk => body += chunk.toString());
                 req.on('end', async () => {
                   try {
-                    // load dynamic import without caching if possible, but fine to just import since type="module"
-                    const func = await import(path.resolve(import.meta.dirname, 'api/ask-naitik.js') + '?t=' + Date.now());
+                    // load dynamic import without caching if possible
+                    const func = await import(path.resolve(import.meta.dirname, `.${apiPath}.js`) + '?t=' + Date.now());
                     
                     // Mock Vercel req/res objects
                     const mockReq = {
@@ -62,13 +64,14 @@ export default defineConfig(() => {
         },
         configurePreviewServer(server) {
           server.middlewares.use(async (req, res, next) => {
-            if (req.url?.startsWith('/api/ask-naitik')) {
+            if (req.url?.startsWith('/api/')) {
               try {
+                const apiPath = req.url.split('?')[0];
                 let body = '';
                 req.on('data', chunk => body += chunk.toString());
                 req.on('end', async () => {
                   try {
-                    const func = await import(path.resolve(import.meta.dirname, 'api/ask-naitik.js') + '?t=' + Date.now());
+                    const func = await import(path.resolve(import.meta.dirname, `.${apiPath}.js`) + '?t=' + Date.now());
                     
                     const mockReq = {
                       method: req.method,
