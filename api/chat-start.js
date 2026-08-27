@@ -194,7 +194,8 @@ export default async function handler(req, res) {
               </table>
             </body>
             </html>
-          `
+          `,
+          text: `Hi ${safeName},\n\nThank you for visiting my interactive portfolio and exploring my work. I truly appreciate you taking the time out of your day to chat with my AI assistant and view my projects.\n\nI would value your feedback. Whether it's a thought on the user experience, a bug you spotted, or just a quick hello—your feedback helps me continuously improve.\n\nYou can share your thoughts by replying directly to this email or messaging me on WhatsApp: +91 92596 45560.\n\nLooking forward to connecting with you!\n\n---\nSent by Naitik's AI Assistant.\n\nDisclaimer: This automated email was sent because this address was entered into the visitor welcome form at Naitik Agarwal's interactive portfolio. If you did not request this email, please accept our sincere apologies. You can safely ignore or delete this message; please do not mark it as spam or report it, as it was likely a typo by another visitor. No further automated emails will be sent to this address.`
         };
 
         try {
