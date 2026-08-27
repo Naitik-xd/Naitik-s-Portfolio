@@ -1154,6 +1154,22 @@
           return;
         }
         
+        // Use a comprehensive Blocklist to allow recruiters (custom domains) while blocking 99% of temp mails
+        const domain = contactVal.split('@')[1].toLowerCase();
+        
+        // Extended list of common temp mail keywords
+        const tempKeywords = ['temp', '10minute', '10min', 'yopmail', 'mailinator', 'guerrilla', 'fake', 'throwaway', 'nada', 'maildrop', 'trash', 'sharklasers', 'mohmal', 'emailondeck', 'dispostable', 'minuteinbox', 'burner', 'generator', 'anon', 'spam'];
+        
+        // Extended list of exact known temp domains (including the one the user found)
+        const exactBlocked = ['temp-mail.org', 'temp-mail.io', 'tempmail.com', 'tempmail.net', 'fakemail.net', 'prodbits.com', 'getnada.com', 'dropmail.me', '10minutemail.com'];
+        
+        const isTemp = tempKeywords.some(keyword => domain.includes(keyword)) || exactBlocked.includes(domain);
+        
+        if (isTemp) {
+          errorDiv.textContent = 'Temporary or disposable email addresses are not allowed. Please use a real email.';
+          return;
+        }
+        
         window.chatUserName = nameVal;
         window.chatUserContact = contactVal;
         

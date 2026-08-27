@@ -89,6 +89,18 @@ export default async function handler(req, res) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (userContact && emailRegex.test(userContact)) {
       
+      const domain = userContact.split('@')[1].toLowerCase();
+      
+      const tempKeywords = ['temp', '10minute', '10min', 'yopmail', 'mailinator', 'guerrilla', 'fake', 'throwaway', 'nada', 'maildrop', 'trash', 'sharklasers', 'mohmal', 'emailondeck', 'dispostable', 'minuteinbox', 'burner', 'generator', 'anon', 'spam'];
+      const exactBlocked = ['temp-mail.org', 'temp-mail.io', 'tempmail.com', 'tempmail.net', 'fakemail.net', 'prodbits.com', 'getnada.com', 'dropmail.me', '10minutemail.com'];
+      
+      const isTemp = tempKeywords.some(keyword => domain.includes(keyword)) || exactBlocked.includes(domain);
+      
+      if (isTemp) {
+        console.warn(`Blocked disposable email: ${userContact}`);
+        return res.status(400).json({ error: "Temporary or disposable email addresses are not allowed." });
+      }
+
       const now = Date.now();
       let canSend = true;
       let emailTrackerKey = `EMAIL_${userContact.toLowerCase()}`;
