@@ -1138,9 +1138,15 @@
           alert('Please enter your name to continue.');
           return;
         }
+
+        const contactVal = contactInput.value.trim();
+        if (!contactVal) {
+          alert('Please enter your email to continue.');
+          return;
+        }
         
         window.chatUserName = nameVal;
-        window.chatUserContact = contactInput.value.trim();
+        window.chatUserContact = contactVal;
         
         document.getElementById('chat-welcome-screen').style.display = 'none';
         document.getElementById('chat-messages').style.display = 'flex';
