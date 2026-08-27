@@ -76,9 +76,27 @@ export default async function handler(req, res) {
       const now = Date.now();
       let canSend = true;
       let emailTrackerKey = `EMAIL_${userContact.toLowerCase()}`;
+      let ipTrackerKey = `WELCOME_IP_${ip}`;
+      let currentIpCount = 0;
 
       if (supabase) {
-        const { data: record, error } = await supabase
+        // SECURITY PATCH: Stop bots from using one IP to spam hundreds of different emails
+        const { data: ipRecord } = await supabase
+          .from('rate_limits')
+          .select('*')
+          .eq('ip_address', ipTrackerKey)
+          .single();
+
+        if (ipRecord) {
+          currentIpCount = ipRecord.message_count || 0;
+          if (currentIpCount >= 3 && ipRecord.banned_until > now) {
+            canSend = false; // Block IP if they sent more than 3 welcome emails in 24 hours
+            console.log("Blocked spam attempt from IP:", ip);
+          }
+        }
+
+        // Standard check to prevent spamming the exact same email multiple times
+        const { data: record } = await supabase
           .from('rate_limits')
           .select('*')
           .eq('ip_address', emailTrackerKey)
@@ -145,7 +163,7 @@ export default async function handler(req, res) {
                       <tr>
                         <td style="background-color: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
                           <p style="color: #94a3b8; font-size: 13px; margin: 0; line-height: 1.5;">
-                            © ${new Date().getFullYear()} Naitik Agarwal. All rights reserved.<br>
+                            Sent by Naitik's AI Assistant.<br>
                             You are receiving this automated welcome email because you visited my portfolio.
                           </p>
                         </td>
@@ -171,10 +189,19 @@ export default async function handler(req, res) {
 
           // Mark cooldown in Supabase
           if (supabase) {
+            // Log the email recipient cooldown
             await supabase.from('rate_limits').upsert({
               ip_address: emailTrackerKey,
               strikes: 0,
               message_count: 1,
+              banned_until: now + WELCOME_COOLDOWN
+            }, { onConflict: 'ip_address' });
+
+            // Log the sender IP cooldown
+            await supabase.from('rate_limits').upsert({
+              ip_address: ipTrackerKey,
+              strikes: 0,
+              message_count: currentIpCount + 1,
               banned_until: now + WELCOME_COOLDOWN
             }, { onConflict: 'ip_address' });
           }
