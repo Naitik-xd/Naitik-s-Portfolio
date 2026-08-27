@@ -61,11 +61,27 @@ export default async function handler(req, res) {
   try {
     let body = req.body;
     if (typeof body === 'string') body = JSON.parse(body);
-    const { userName, userContact } = body;
+    const { userName, userContact, recaptchaToken } = body;
 
     const safeName = (userName || "Anonymous").substring(0, 50).replace(/[<>]/g, "");
     const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
     
+    // Verify reCAPTCHA
+    if (process.env.RECAPTCHA_SECRET_KEY && recaptchaToken) {
+      try {
+        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}&remoteip=${ip}`;
+        const recaptchaRes = await fetch(verifyUrl, { method: 'POST' });
+        const recaptchaJson = await recaptchaRes.json();
+        
+        if (!recaptchaJson.success || recaptchaJson.score < 0.5) {
+          console.warn("reCAPTCHA failed or score too low:", recaptchaJson);
+          return res.status(400).json({ error: "Bot detected." });
+        }
+      } catch (err) {
+        console.error("reCAPTCHA verify error:", err);
+      }
+    }
+
     // 1. Notify Discord (Immediate)
     await notifyDiscord(`👋 **New chat started!**\nName: ${safeName}\nContact: ${userContact || 'None provided'}\nIP: ||${ip}||`);
 
@@ -78,8 +94,10 @@ export default async function handler(req, res) {
       let emailTrackerKey = `EMAIL_${userContact.toLowerCase()}`;
       let ipTrackerKey = `WELCOME_IP_${ip}`;
       let currentIpCount = 0;
+      
+      const isAdmin = userContact.toLowerCase() === 'naitik.270810@gmail.com';
 
-      if (supabase) {
+      if (supabase && !isAdmin) {
         // SECURITY PATCH: Stop bots from using one IP to spam hundreds of different emails
         const { data: ipRecord } = await supabase
           .from('rate_limits')
@@ -162,9 +180,11 @@ export default async function handler(req, res) {
                       <!-- Footer -->
                       <tr>
                         <td style="background-color: #f8fafc; padding: 30px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
-                          <p style="color: #94a3b8; font-size: 13px; margin: 0; line-height: 1.5;">
+                          <p style="color: #94a3b8; font-size: 13px; margin: 0 0 16px 0; line-height: 1.5;">
                             Sent by Naitik's AI Assistant.<br>
-                            You are receiving this automated welcome email because you visited my portfolio.
+                          </p>
+                          <p style="color: #64748b; font-size: 11px; margin: 0; line-height: 1.5; text-align: justify;">
+                            <strong>Disclaimer:</strong> This automated email was sent because this address was entered into the visitor welcome form at Naitik Agarwal's interactive portfolio. If you initiated this, we are thrilled to connect! If you did not request this email, please accept our sincere apologies. You can safely ignore or delete this message; please do not mark it as spam or report it, as it was likely a typo by another visitor. No further automated emails will be sent to this address.
                           </p>
                         </td>
                       </tr>
@@ -188,7 +208,7 @@ export default async function handler(req, res) {
           }
 
           // Mark cooldown in Supabase
-          if (supabase) {
+          if (supabase && !isAdmin) {
             // Log the email recipient cooldown
             await supabase.from('rate_limits').upsert({
               ip_address: emailTrackerKey,

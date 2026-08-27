@@ -14,7 +14,8 @@ async function startServer() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          scriptSrc: ["'self'"],
+          scriptSrc: ["'self'", "https://www.google.com/recaptcha/", "https://www.gstatic.com/recaptcha/"],
+          frameSrc: ["'self'", "https://www.google.com/recaptcha/"],
           objectSrc: ["'none'"],
           styleSrc: [
             "'self'",

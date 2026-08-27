@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://i.ibb.co https://raw.githubusercontent.com *; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: https://generativelanguage.googleapis.com https://vitals.vercel-insights.com https://raw.githubusercontent.com *; frame-ancestors *;"
+          "value": "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com/recaptcha/; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://i.ibb.co https://raw.githubusercontent.com *; font-src 'self' https://fonts.gstatic.com; connect-src 'self' ws: https://generativelanguage.googleapis.com https://vitals.vercel-insights.com https://raw.githubusercontent.com *; frame-ancestors *;"
         },
         {
           "key": "X-Content-Type-Options",

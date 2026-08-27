@@ -1115,6 +1115,19 @@
       let isChatOpen = false;
       window.chatUserName = '';
       window.chatUserContact = '';
+      
+      let recaptchaSiteKey = '';
+      fetch('/api/config')
+        .then(res => res.json())
+        .then(data => {
+          if (data.recaptchaSiteKey) {
+            recaptchaSiteKey = data.recaptchaSiteKey;
+            const script = document.createElement('script');
+            script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
+            document.head.appendChild(script);
+          }
+        })
+        .catch(e => console.error("Config fetch error:", e));
 
       function submitWelcomeForm() {
         const nameInput = document.getElementById('welcome-name');
@@ -1139,13 +1152,25 @@
           welcomeMsg.textContent = `Hi ${window.chatUserName}! I am Naitik's AI assistant. Ask me anything about his skills, projects, or achievements.`;
         }
 
-        fetch('/api/chat-start', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ userName: window.chatUserName, userContact: window.chatUserContact })
-        }).catch(e => console.error('Failed to notify backend:', e));
+        const proceedWithSubmission = (token) => {
+          fetch('/api/chat-start', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userName: window.chatUserName, userContact: window.chatUserContact, recaptchaToken: token })
+          }).catch(e => console.error('Failed to notify backend:', e));
+        };
+
+        if (window.grecaptcha && recaptchaSiteKey) {
+          grecaptcha.ready(() => {
+            grecaptcha.execute(recaptchaSiteKey, {action: 'submit'}).then((token) => {
+              proceedWithSubmission(token);
+            });
+          });
+        } else {
+          proceedWithSubmission('');
+        }
       }
 
       // Show notification dot after 3s if not open
