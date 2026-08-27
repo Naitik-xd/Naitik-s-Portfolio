@@ -48,6 +48,11 @@
         --nav-bg: rgba(248, 250, 252, 0.7);
       }
 
+      /* Hide reCAPTCHA badge since we added the required disclaimer */
+      .grecaptcha-badge { 
+        visibility: hidden !important;
+      }
+
       body {
         background-color: var(--background);
         color: var(--text-white);
@@ -1358,8 +1363,12 @@
           <p style="font-size: 0.85rem; color: rgba(255, 255, 255, 0.7);">To personalize your experience, please introduce yourself.</p>
         </div>
         <input type="text" id="welcome-name" placeholder="Your Name (Required)" style="width: 100%; padding: 12px; margin-bottom: 12px; border-radius: 8px; border: 1px solid rgba(74, 158, 255, 0.2); background: rgba(0,0,0,0.2); color: white; font-family: 'Geist', sans-serif; font-size: 0.9rem;" maxlength="50" required>
-        <input type="email" id="welcome-contact" placeholder="Email (Required)" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid rgba(74, 158, 255, 0.2); background: rgba(0,0,0,0.2); color: white; font-family: 'Geist', sans-serif; font-size: 0.9rem;" maxlength="100" required>
+        <input type="email" id="welcome-contact" placeholder="Email (Required)" style="width: 100%; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid rgba(74, 158, 255, 0.2); background: rgba(0,0,0,0.2); color: white; font-family: 'Geist', sans-serif; font-size: 0.9rem;" maxlength="100" required>
+        <div id="welcome-error" style="color: #ff6b6b; font-size: 0.8rem; margin-bottom: 12px; min-height: 16px; text-align: left; width: 100%;"></div>
         <button id="welcome-submit" style="width: 100%; padding: 12px; border-radius: 8px; background: #4a9eff; color: #fff; font-weight: bold; border: none; cursor: pointer; transition: opacity 0.2s; font-size: 0.9rem;">Start Chatting</button>
+        <p style="font-size: 0.65rem; color: rgba(255,255,255,0.4); text-align: center; margin-top: 16px; line-height: 1.4;">
+          This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" style="color: rgba(255,255,255,0.6); text-decoration: underline;" target="_blank">Privacy Policy</a> and <a href="https://policies.google.com/terms" style="color: rgba(255,255,255,0.6); text-decoration: underline;" target="_blank">Terms of Service</a> apply.
+        </p>
       </div>
       
       <div id="chat-messages" style="display: none;">

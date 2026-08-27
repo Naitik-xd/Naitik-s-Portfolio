@@ -1132,22 +1132,25 @@
       function submitWelcomeForm() {
         const nameInput = document.getElementById('welcome-name');
         const contactInput = document.getElementById('welcome-contact');
+        const errorDiv = document.getElementById('welcome-error');
+        
+        errorDiv.textContent = ''; // clear errors
         
         const nameVal = nameInput.value.trim();
         if (!nameVal) {
-          alert('Please enter your name to continue.');
+          errorDiv.textContent = 'Please enter your name to continue.';
           return;
         }
 
         const contactVal = contactInput.value.trim();
         if (!contactVal) {
-          alert('Please enter your email to continue.');
+          errorDiv.textContent = 'Please enter your email to continue.';
           return;
         }
         
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(contactVal)) {
-          alert('Please enter a valid email address to continue.');
+          errorDiv.textContent = 'Please enter a valid email address to continue.';
           return;
         }
         
