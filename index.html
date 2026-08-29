@@ -651,8 +651,21 @@
           <div class="pt-16 border-t border-outline/60 mt-4">
             <span class="text-gold font-space text-xs tracking-[0.3em] uppercase block font-semibold mb-6">AI TOOLS ARSENAL</span>
             
-            <!-- Injected AI Tool cards grid -->
-            <div id="tools-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 w-full"></div>
+            <!-- Interactive AI Tool cards slider -->
+            <div class="relative w-full py-2 group/slider px-12 md:px-0">
+              <!-- Left Arrow -->
+              <button id="tool-scroll-left" class="absolute left-0 md:-left-4 top-1/2 -translate-y-1/2 z-10 bg-surface border border-outline w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-gold hover:bg-surface-light shadow-xl transition-all duration-300 opacity-0 pointer-events-none" aria-label="Scroll Left">
+                <i data-lucide="chevron-left" class="w-5 h-5 md:w-6 md:h-6"></i>
+              </button>
+              
+              <!-- Container -->
+              <div id="tools-grid" class="flex gap-4 md:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full md:px-2"></div>
+              
+              <!-- Right Arrow -->
+              <button id="tool-scroll-right" class="absolute right-0 md:-right-4 top-1/2 -translate-y-1/2 z-10 bg-surface border border-outline w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:border-gold hover:bg-surface-light shadow-xl transition-all duration-300 opacity-0 pointer-events-none" aria-label="Scroll Right">
+                <i data-lucide="chevron-right" class="w-5 h-5 md:w-6 md:h-6"></i>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -855,7 +868,7 @@
                 </div>
                 <h3 class="font-sora font-bold text-white text-xl md:text-2xl mt-1">Ideathon 26 Challenger</h3>
                 <p class="font-geist text-sm text-textDim leading-relaxed font-light">
-                  Returned stronger. Focused on redefining no-code AI workflows, rapid prompt orchestration patterns, and automated agent structures. The grind continues.
+                  Returned stronger. Focused on redefining AI web workflows, rapid prompt orchestration patterns, and automated agent structures. The grind continues.
                 </p>
               </div>
 
@@ -1024,19 +1037,33 @@
           </h2>
 
           <!-- Link email CTAs -->
-          <div class="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-8 flex-wrap">
-            <a href="mailto:Naitik.270810@outlook.com" class="magnetic-btn relative border border-primaryBlue/30 hover:border-primaryBlue px-10 py-5 rounded-2xl bg-surface/50 text-white font-space text-xs md:text-sm uppercase tracking-widest w-max transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(74,158,255,0.06)] hover:shadow-[0_0_35px_rgba(74,158,255,0.25)] flex items-center gap-3.5 cursor-pointer">
+          <div class="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 flex-wrap">
+            <!-- Primary Email -->
+            <a href="mailto:hi.naitik.dev@gmail.com" class="magnetic-btn relative border border-primaryBlue/50 hover:border-primaryBlue px-10 py-5 rounded-2xl bg-primaryBlue/10 text-white font-space text-xs md:text-sm uppercase tracking-widest w-max transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(74,158,255,0.1)] hover:shadow-[0_0_35px_rgba(74,158,255,0.25)] flex items-center gap-3.5 cursor-pointer">
               <div class="btn-glow-highlight absolute inset-0 pointer-events-none rounded-2xl bg-[radial-gradient(circle_at_var(--x)_var(--y),rgba(74,158,255,0.3)_0%,transparent_50%)] opacity-0 transition-opacity duration-300"></div>
-              <i data-lucide="mail" class="w-4.5 h-4.5 text-primaryBlue"></i>
-              <span>Naitik.270810@outlook.com</span>
+              <i data-lucide="mail" class="w-5 h-5 text-primaryBlue"></i>
+              <span class="font-bold">hi.naitik.dev@gmail.com</span>
             </a>
 
-            <a href="mailto:naitik.270810@gmail.com" class="magnetic-btn relative border border-primaryBlue/30 hover:border-primaryBlue px-10 py-5 rounded-2xl bg-surface/50 text-white font-space text-xs md:text-sm uppercase tracking-widest w-max transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(74,158,255,0.06)] hover:shadow-[0_0_35px_rgba(74,158,255,0.25)] flex items-center gap-3.5 cursor-pointer">
-              <div class="btn-glow-highlight absolute inset-0 pointer-events-none rounded-2xl bg-[radial-gradient(circle_at_var(--x)_var(--y),rgba(74,158,255,0.3)_0%,transparent_50%)] opacity-0 transition-opacity duration-300"></div>
-              <i data-lucide="mail" class="w-4.5 h-4.5 text-primaryBlue"></i>
-              <span>naitik.270810@gmail.com</span>
-            </a>
+            <!-- Secondary Emails -->
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 md:gap-6 mt-2 md:mt-0">
+              <a href="mailto:naitik.270810@gmail.com" class="magnetic-btn relative border border-outline hover:border-primaryBlue/40 px-6 py-4 rounded-xl bg-surface/30 text-textDim hover:text-white font-space text-[10px] md:text-xs uppercase tracking-widest w-max transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 cursor-pointer">
+                <i data-lucide="mail" class="w-4 h-4 text-textDim group-hover:text-primaryBlue"></i>
+                <span>naitik.270810@gmail.com</span>
+              </a>
+
+              <a href="mailto:Naitik.270810@outlook.com" class="magnetic-btn relative border border-outline hover:border-primaryBlue/40 px-6 py-4 rounded-xl bg-surface/30 text-textDim hover:text-white font-space text-[10px] md:text-xs uppercase tracking-widest w-max transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-3 cursor-pointer">
+                <i data-lucide="mail" class="w-4 h-4 text-textDim group-hover:text-primaryBlue"></i>
+                <span>Naitik.270810@outlook.com</span>
+              </a>
+            </div>
           </div>
+
+          <!-- Feedback / Bug Report Button -->
+          <button id="open-feedback-btn" class="relative group border border-outline hover:border-gold px-8 py-4 rounded-xl bg-surface/30 text-white font-space text-xs md:text-sm tracking-wider w-max transition-all duration-300 hover:bg-surface-light flex items-center justify-center gap-3 cursor-pointer mt-4 shadow-xl">
+            <i data-lucide="message-square" class="w-4 h-4 text-white/70 group-hover:text-gold transition-colors"></i>
+            <span>Report Bug & Feedback</span>
+          </button>
         </div>
 
         <div class="relative z-10 w-full max-w-7xl border-t border-outline/50 pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-textDim font-space tracking-wider">
@@ -1054,6 +1081,55 @@
       <div class="modal-box w-full max-w-2xl bg-[#090b16] border border-outline rounded-3xl p-8 relative shadow-[0_30px_60px_-15px_rgba(0,0,0,0.85)]" style="transform: scale(0.9); opacity: 0; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;">
         <!-- Filled programmatically in JavaScript -->
         <div id="modal-card-content"></div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK MODAL -->
+    <div id="feedback-modal" class="fixed inset-0 bg-background/80 backdrop-blur-md z-[6000] hidden items-center justify-center p-4">
+      <div class="modal-box w-full max-w-xl bg-surface border border-outline rounded-3xl p-6 md:p-8 relative shadow-2xl" style="transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        
+        <button id="close-feedback-btn" class="absolute top-4 right-4 md:top-6 md:right-6 text-white/50 hover:text-white bg-surface-light border border-outline rounded-full p-2 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <h3 class="font-sora text-xl md:text-2xl font-bold text-white mb-2 flex items-center gap-3">
+          <i data-lucide="sparkles" class="w-6 h-6 text-gold"></i>
+          Feedback & Bug Report
+        </h3>
+        <p class="font-geist text-textDim text-sm mb-8 font-light">
+          Let me know if you found a bug or just want to share your experience. This goes straight to my personal Discord.
+        </p>
+
+        <form id="feedback-form" class="flex flex-col gap-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div class="flex flex-col gap-2">
+              <label for="fb-name" class="font-space text-[10px] uppercase tracking-widest text-textDim">Name *</label>
+              <input type="text" id="fb-name" required placeholder="John Doe" class="bg-surface-light border border-outline rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primaryBlue transition-colors font-geist placeholder:text-white/20">
+            </div>
+            
+            <div class="flex flex-col gap-2">
+              <label for="fb-email" class="font-space text-[10px] uppercase tracking-widest text-textDim">Email *</label>
+              <input type="email" id="fb-email" required placeholder="john@example.com" class="bg-surface-light border border-outline rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primaryBlue transition-colors font-geist placeholder:text-white/20">
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="fb-phone" class="font-space text-[10px] uppercase tracking-widest text-textDim">Phone Number (Optional)</label>
+            <input type="tel" id="fb-phone" placeholder="+1 (555) 000-0000" class="bg-surface-light border border-outline rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primaryBlue transition-colors font-geist placeholder:text-white/20">
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="fb-message" class="font-space text-[10px] uppercase tracking-widest text-textDim">Experience / Bug Details *</label>
+            <textarea id="fb-message" required rows="4" placeholder="I noticed a glitch when..." class="bg-surface-light border border-outline rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primaryBlue transition-colors font-geist placeholder:text-white/20 resize-none"></textarea>
+          </div>
+
+          <button type="submit" id="feedback-submit-btn" class="mt-2 w-full bg-primaryBlue hover:bg-primaryBlue/80 text-white font-sora font-semibold py-4 rounded-xl flex items-center justify-center gap-3 transition-colors">
+            <span>Submit</span>
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+          
+          <div id="feedback-status" class="hidden text-center font-geist text-sm mt-2 font-medium"></div>
+        </form>
       </div>
     </div>
 
@@ -1398,6 +1474,6 @@
 
     
     <script type="module" src="/src/main.tsx"></script>
-      <script defer src="/js/inline.js?v=6"></script>
+      <script defer src="/js/inline.js?v=9"></script>
   </body>
 </html>

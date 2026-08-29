@@ -40,11 +40,11 @@
           tags: ["Early Adopter", "Tool Evaluation", "Antigravity", "Nano Banana", "Google Veo"],
           isGold: true
         },
-        "no-code": {
-          name: "No-Code Development",
+        "ai-web": {
+          name: "AI Web Development",
           icon: "🛠️",
           tagline: "Code is optional shipping is not",
-          desc: "I build and deploy functional web applications using no-code and AI-native platforms. From concept to live URL without writing traditional code, my workflow combines visual builders, AI generation, and smart prompt iteration to produce real products.",
+          desc: "I build and deploy functional web applications using AI-native platforms. From concept to live URL, my workflow combines AI generation, intelligent prompt orchestration, and rapid iteration to produce real, production-ready products.",
           tags: ["Lovable", "AI Builders", "Deploy and Ship", "Product Thinking"]
         },
         "photography": {
@@ -68,7 +68,7 @@
         { id: 'vibe-coding', name: 'Vibe Coding', emoji: '⚡', isGold: true },
         { id: 'prompt-engineering', name: 'Prompt Engineering', emoji: '🧠', isGold: false },
         { id: 'tool-scouting', name: 'AI Tool Scouting', emoji: '🔍', isGold: true },
-        { id: 'no-code', name: 'No-Code Development', emoji: '🛠️', isGold: false },
+        { id: 'ai-web', name: 'AI Web Development', emoji: '🛠️', isGold: false },
         { id: 'photography', name: 'Photography', emoji: '📷', isGold: false },
         { id: 'design', name: 'Canva and AI Design', emoji: '🎨', isGold: false }
       ];
@@ -516,11 +516,21 @@
           pillsContainer.appendChild(pill);
         });
 
-        // 2. Compile AI Tools Arsenal
+        // 2. Compile AI Tools Arsenal (Interactive Slider)
         const toolContainer = document.getElementById('tools-grid');
-        aiToolsList.forEach(tool => {
+        
+        // Add "Many more..." to the base list
+        const baseToolsList = [...aiToolsList, { 
+          name: 'And Many More...', 
+          desc: 'Constantly exploring the bleeding edge', 
+          color: '#ffffff', 
+          logo: `<div style="width:48px;height:48px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px dashed rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;"><i data-lucide="plus" class="w-6 h-6 text-white/70"></i></div>` 
+        }];
+        
+        baseToolsList.forEach(tool => {
           const gridCard = document.createElement('div');
-          gridCard.className = 'tilt-card relative bg-surface/30 backdrop-blur-md border border-outline rounded-3xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-300 group';
+          // Added responsive width and snap-center class
+          gridCard.className = 'tilt-card relative bg-surface/30 backdrop-blur-md border border-outline rounded-3xl p-6 flex flex-col gap-4 overflow-hidden transition-all duration-300 group w-[260px] sm:w-[320px] flex-shrink-0 snap-center';
           
           gridCard.addEventListener('mouseenter', () => {
             gridCard.style.borderColor = tool.color;
@@ -540,6 +550,57 @@
           `;
           toolContainer.appendChild(gridCard);
         });
+
+        // Initialize Slider Navigation
+        const scrollLeftBtn = document.getElementById('tool-scroll-left');
+        const scrollRightBtn = document.getElementById('tool-scroll-right');
+        
+        if (scrollLeftBtn && scrollRightBtn && toolContainer) {
+          scrollLeftBtn.addEventListener('click', () => {
+            cinematicAudio.playClickFX();
+            toolContainer.scrollBy({ left: -344, behavior: 'smooth' });
+          });
+          
+          scrollRightBtn.addEventListener('click', () => {
+            cinematicAudio.playClickFX();
+            toolContainer.scrollBy({ left: 344, behavior: 'smooth' });
+          });
+          
+          const updateSliderButtons = () => {
+            const maxScroll = toolContainer.scrollWidth - toolContainer.clientWidth;
+            
+            if (toolContainer.scrollLeft > 10) {
+              scrollLeftBtn.classList.remove('opacity-0', 'pointer-events-none');
+              scrollLeftBtn.classList.add('opacity-100', 'pointer-events-auto');
+            } else {
+              scrollLeftBtn.classList.add('opacity-0', 'pointer-events-none');
+              scrollLeftBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            }
+            
+            if (toolContainer.scrollLeft >= maxScroll - 10) {
+              scrollRightBtn.classList.add('opacity-0', 'pointer-events-none');
+              scrollRightBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            } else {
+              scrollRightBtn.classList.remove('opacity-0', 'pointer-events-none');
+              scrollRightBtn.classList.add('opacity-100', 'pointer-events-auto');
+            }
+          };
+          
+          toolContainer.addEventListener('scroll', updateSliderButtons);
+          window.addEventListener('resize', updateSliderButtons);
+          
+          // Use ResizeObserver for perfect accuracy after DOM paints/fonts load
+          if (window.ResizeObserver) {
+            const observer = new ResizeObserver(() => {
+              updateSliderButtons();
+            });
+            observer.observe(toolContainer);
+          }
+          
+          // Initial UI update
+          setTimeout(updateSliderButtons, 100);
+          setTimeout(updateSliderButtons, 500);
+        }
 
         // Initialize Lucide Vectors rendering
         lucide.createIcons();
@@ -1405,3 +1466,97 @@ if (document.readyState === 'loading') {
 } else {
     attachEvents();
 }
+
+// --- FEEDBACK MODAL LOGIC ---
+document.addEventListener('DOMContentLoaded', () => {
+  const openFeedbackBtn = document.getElementById('open-feedback-btn');
+  const closeFeedbackBtn = document.getElementById('close-feedback-btn');
+  const feedbackModal = document.getElementById('feedback-modal');
+  const feedbackForm = document.getElementById('feedback-form');
+  const feedbackStatus = document.getElementById('feedback-status');
+  const feedbackSubmitBtn = document.getElementById('feedback-submit-btn');
+
+  if (!openFeedbackBtn || !feedbackModal) return;
+
+  const openFeedback = () => {
+    cinematicAudio.playClickFX();
+    feedbackModal.classList.remove('hidden');
+    feedbackModal.classList.add('flex');
+    // small delay for transition
+    setTimeout(() => {
+      const modalBox = feedbackModal.querySelector('.modal-box');
+      if (modalBox) {
+        modalBox.style.transform = 'scale(1)';
+        modalBox.style.opacity = '1';
+      }
+    }, 10);
+  };
+
+  const closeFeedback = () => {
+    cinematicAudio.playClickFX();
+    const modalBox = feedbackModal.querySelector('.modal-box');
+    if (modalBox) {
+      modalBox.style.transform = 'scale(0.95)';
+      modalBox.style.opacity = '0';
+    }
+    setTimeout(() => {
+      feedbackModal.classList.add('hidden');
+      feedbackModal.classList.remove('flex');
+    }, 300);
+  };
+
+  openFeedbackBtn.addEventListener('click', openFeedback);
+  closeFeedbackBtn.addEventListener('click', closeFeedback);
+  
+  feedbackModal.addEventListener('click', (e) => {
+    if (e.target === feedbackModal) closeFeedback();
+  });
+
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('fb-name').value;
+      const email = document.getElementById('fb-email').value;
+      const phone = document.getElementById('fb-phone').value;
+      const message = document.getElementById('fb-message').value;
+
+      feedbackSubmitBtn.disabled = true;
+      feedbackSubmitBtn.innerHTML = '<i class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin inline-block"></i> <span>Sending...</span>';
+      
+      feedbackStatus.classList.remove('hidden', 'text-green-400', 'text-red-400', 'text-emerald-400');
+      feedbackStatus.textContent = '';
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, phone, message })
+        });
+
+        if (res.ok) {
+          feedbackStatus.textContent = 'Feedback sent successfully! Thank you.';
+          feedbackStatus.classList.add('text-emerald-400', 'block');
+          feedbackForm.reset();
+          
+          setTimeout(() => {
+            closeFeedback();
+            feedbackSubmitBtn.disabled = false;
+            feedbackSubmitBtn.innerHTML = '<span>Submit</span><i data-lucide="send" class="w-4 h-4"></i>';
+            lucide.createIcons();
+            feedbackStatus.classList.add('hidden', 'block');
+          }, 2500);
+        } else {
+          throw new Error('Failed to send');
+        }
+      } catch (err) {
+        console.error(err);
+        feedbackStatus.textContent = 'Oops! Something went wrong. Try again.';
+        feedbackStatus.classList.add('text-red-400', 'block');
+        feedbackSubmitBtn.disabled = false;
+        feedbackSubmitBtn.innerHTML = '<span>Submit</span><i data-lucide="send" class="w-4 h-4"></i>';
+        lucide.createIcons();
+      }
+    });
+  }
+});

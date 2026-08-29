@@ -164,14 +164,14 @@ Achievements: Ideathon 2025 Top 100 of 1400. Ideathon 2026 Participated. MDI Gur
 Badges & Certificates: 109+ Google Cloud Skills Boost badges. [Professional Certificates](https://drive.google.com/drive/folders/1Mvz1GK2IPJupNpuuxeZEsHP81d7avSaj?usp=sharing)
 Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
-Contact: Naitik.270810@outlook.com
+Contact: hi.naitik.dev@gmail.com
 Social Links:
 - [GitHub](https://github.com/Naitik-xd)
 - [LinkedIn](https://www.linkedin.com/in/na1t1k)
 - [X (Twitter)](https://x.com/NA1T1Kxd)
 - [Google Skills Profile](https://www.skills.google/public_profiles/38b0b619-88ee-4eea-845e-97512f415e2e)
 - [Google Developer Profile](https://g.dev/na1t1k)
-Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws.`;
+Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws. If a user wants to give feedback, report a bug, or share an experience, use the 'sendFeedbackToDiscord' tool to capture it. If they have doubts or questions requiring Naitik's help, direct them to email hi.naitik.dev@gmail.com.`;
 
     const apiKey = process.env.GAPI_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -227,6 +227,20 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
                 }
               },
               required: ["theme"]
+            }
+          },
+          {
+            name: "sendFeedbackToDiscord",
+            description: "Capture the user's feedback, bug report, or experience when they mention wanting to leave feedback. Sends it directly to Naitik's Discord.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                feedbackMessage: {
+                  type: "STRING",
+                  description: "The feedback message or bug report the user provided."
+                }
+              },
+              required: ["feedbackMessage"]
             }
           },
           {
@@ -298,6 +312,10 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
         if (functionName === 'switchTheme') {
           action = { type: 'switchTheme', theme: args.theme };
           reply = textPart ? textPart.text : `Switched the website to ${args.theme} mode!`;
+        } else if (functionName === 'sendFeedbackToDiscord') {
+          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
+          await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Message:** ${args.feedbackMessage}`);
+          reply = textPart ? textPart.text : "Thank you! I've sent your feedback directly to Naitik's Discord.";
         } else if (functionName === 'reportAbuse') {
           // Handle abuse strike
           tracker.strikes++;
