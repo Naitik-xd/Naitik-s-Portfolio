@@ -1,3 +1,5 @@
+export const config = { maxDuration: 60 };
+
 export default async function handler(req, res) {
   // CORS setup
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -45,6 +47,7 @@ export default async function handler(req, res) {
 
     const discordPayload = {
       embeds: [embed],
+      allowed_mentions: { parse: [] }
     };
 
     // Send to Discord

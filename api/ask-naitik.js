@@ -1,3 +1,5 @@
+export const config = { maxDuration: 60 };
+
 import { createClient } from '@supabase/supabase-js';
 
 const RATE_LIMIT_MAX = 20;
@@ -11,7 +13,10 @@ async function notifyDiscord(msg) {
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: msg })
+        body: JSON.stringify({ 
+          content: msg,
+          allowed_mentions: { parse: [] } 
+        })
       });
     } catch (e) {
       console.error("Webhook error:", e);

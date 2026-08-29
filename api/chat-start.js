@@ -1,3 +1,5 @@
+export const config = { maxDuration: 60 };
+
 import { createClient } from '@supabase/supabase-js';
 import nodemailer from 'nodemailer';
 
