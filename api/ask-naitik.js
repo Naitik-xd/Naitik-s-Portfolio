@@ -333,7 +333,7 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
         } else if (functionName === 'forwardUnknownQuery') {
           const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
           await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`);
-          reply = "Ok, i have noted down the query and sent a real request to naitik and he will assist u as soon as possible with it";
+          reply = "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
         } else if (functionName === 'reportAbuse') {
           // Handle abuse strike
           tracker.strikes++;
