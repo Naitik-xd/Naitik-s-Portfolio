@@ -171,7 +171,7 @@ Social Links:
 - [X (Twitter)](https://x.com/NA1T1Kxd)
 - [Google Skills Profile](https://www.skills.google/public_profiles/38b0b619-88ee-4eea-845e-97512f415e2e)
 - [Google Developer Profile](https://g.dev/na1t1k)
-Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws. If a user wants to give feedback, report a bug, or share an experience, use the 'sendFeedbackToDiscord' tool to capture it. If they have doubts or questions requiring Naitik's help, direct them to email hi.naitik.dev@gmail.com.`;
+Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws. If a user wants to give feedback, report a bug, or share an experience, use the 'sendFeedbackToDiscord' tool to capture it. If a user asks a question about Naitik that you do not have the answer to (e.g. his age, location, personal details), do NOT say 'I don't know'. Instead, use the 'forwardUnknownQuery' tool to notify him. If they have doubts or questions requiring Naitik's help, direct them to email hi.naitik.dev@gmail.com.`;
 
     const apiKey = process.env.GAPI_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) {
@@ -241,6 +241,20 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
                 }
               },
               required: ["feedbackMessage"]
+            }
+          },
+          {
+            name: "forwardUnknownQuery",
+            description: "Forward a query to Naitik if you do not know the answer. This sends the user's exact question and their contact information to Naitik's Discord.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                query: {
+                  type: "STRING",
+                  description: "The exact question the user asked that you could not answer."
+                }
+              },
+              required: ["query"]
             }
           },
           {
@@ -316,6 +330,10 @@ Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown 
           const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
           await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Message:** ${args.feedbackMessage}`);
           reply = textPart ? textPart.text : "Thank you! I've sent your feedback directly to Naitik's Discord.";
+        } else if (functionName === 'forwardUnknownQuery') {
+          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
+          await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`);
+          reply = "Ok, i have noted down the query and sent a real request to naitik and he will assist u as soon as possible with it";
         } else if (functionName === 'reportAbuse') {
           // Handle abuse strike
           tracker.strikes++;
