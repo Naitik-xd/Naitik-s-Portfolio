@@ -1512,6 +1512,45 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target === feedbackModal) closeFeedback();
   });
 
+  // --- PRIVACY MODAL LOGIC ---
+  const openPrivacyBtn = document.getElementById('open-privacy-btn');
+  const closePrivacyBtn = document.getElementById('close-privacy-btn');
+  const privacyModal = document.getElementById('privacy-modal');
+
+  if (openPrivacyBtn && privacyModal && closePrivacyBtn) {
+    const openPrivacy = () => {
+      cinematicAudio.playClickFX();
+      privacyModal.classList.remove('hidden');
+      privacyModal.classList.add('flex');
+      setTimeout(() => {
+        const modalBox = privacyModal.querySelector('.modal-box');
+        if (modalBox) {
+          modalBox.style.transform = 'scale(1)';
+          modalBox.style.opacity = '1';
+        }
+      }, 10);
+    };
+
+    const closePrivacy = () => {
+      cinematicAudio.playClickFX();
+      const modalBox = privacyModal.querySelector('.modal-box');
+      if (modalBox) {
+        modalBox.style.transform = 'scale(0.95)';
+        modalBox.style.opacity = '0';
+      }
+      setTimeout(() => {
+        privacyModal.classList.add('hidden');
+        privacyModal.classList.remove('flex');
+      }, 300);
+    };
+
+    openPrivacyBtn.addEventListener('click', openPrivacy);
+    closePrivacyBtn.addEventListener('click', closePrivacy);
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) closePrivacy();
+    });
+  }
+
   if (feedbackForm) {
     feedbackForm.addEventListener('submit', async (e) => {
       e.preventDefault();

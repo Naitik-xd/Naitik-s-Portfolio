@@ -1067,7 +1067,11 @@
         </div>
 
         <div class="relative z-10 w-full max-w-7xl border-t border-outline/50 pt-10 flex flex-col sm:flex-row items-center justify-between gap-6 text-xs text-textDim font-space tracking-wider">
-          <span>2026 Naitik Agarwal AI-Native</span>
+          <div class="flex items-center gap-4">
+            <span>2026 Naitik Agarwal AI-Native</span>
+            <span class="w-1 h-1 rounded-full bg-textDim/50 hidden sm:block"></span>
+            <button id="open-privacy-btn" class="hover:text-primaryBlue transition-colors cursor-pointer text-[10px] md:text-xs uppercase tracking-wider font-space">Privacy & Terms</button>
+          </div>
           <div class="flex items-center gap-1.5 opacity-90 select-none">
             <span class="w-2 h-2 rounded-full bg-green bg-emerald-400 animate-pulse"></span>
             <span>CINEMATIC VIBE ENGINE ACTIVE</span>
@@ -1130,6 +1134,45 @@
           
           <div id="feedback-status" class="hidden text-center font-geist text-sm mt-2 font-medium"></div>
         </form>
+      </div>
+    </div>
+
+    <!-- PRIVACY & TERMS MODAL -->
+    <div id="privacy-modal" class="fixed inset-0 bg-background/80 backdrop-blur-md z-[6000] hidden items-center justify-center p-4">
+      <div class="modal-box w-full max-w-3xl bg-surface border border-outline rounded-3xl p-6 md:p-10 relative shadow-2xl max-h-[85vh] overflow-y-auto" style="transform: scale(0.95); opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        
+        <button id="close-privacy-btn" class="absolute top-4 right-4 md:top-6 md:right-6 text-white/50 hover:text-white bg-surface-light border border-outline rounded-full p-2 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+
+        <h3 class="font-sora text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-3">
+          <i data-lucide="shield-check" class="w-6 h-6 text-primaryBlue"></i>
+          Privacy Policy & Terms of Service
+        </h3>
+        
+        <div class="font-geist text-textDim text-sm md:text-base space-y-6">
+          
+          <section>
+            <h4 class="text-white font-sora font-semibold mb-2">Privacy Policy</h4>
+            <ul class="list-disc pl-5 space-y-2 font-light text-white/70">
+              <li><strong class="text-white">What data I collect:</strong> I collect your name, email address, IP address, and the contents of your chat messages and feedback.</li>
+              <li><strong class="text-white">Why I collect it:</strong> Names and emails are used to personalize the chat and send a one-time welcome email. IP addresses are strictly used for security (preventing spam/abuse). Chat inputs are used to generate AI responses.</li>
+              <li><strong class="text-white">Third Parties:</strong> I do not sell your data. However, data is processed securely by third-party services to make the app work: Google Gemini (for AI chat), Supabase (for security rate-limiting), and Discord (for sending your feedback directly to me).</li>
+              <li><strong class="text-white">Data Deletion:</strong> If you want your email or IP address removed from my security logs, you can contact me at hi.naitik.dev@gmail.com.</li>
+            </ul>
+          </section>
+
+          <hr class="border-outline/50">
+
+          <section>
+            <h4 class="text-white font-sora font-semibold mb-2">Terms & Conditions</h4>
+            <ul class="list-disc pl-5 space-y-2 font-light text-white/70">
+              <li><strong class="text-white">AI Disclaimer:</strong> The chatbot on this site is powered by AI (Google Gemini). While it is trained on my portfolio, it may occasionally make mistakes or hallucinate information. Its responses do not form binding agreements on my behalf.</li>
+              <li><strong class="text-white">User Conduct:</strong> You agree not to spam, abuse, or attempt to inject malicious code into the chatbot or feedback forms. The system actively monitors for abuse, and violators will be automatically banned via IP tracking.</li>
+              <li><strong class="text-white">Intellectual Property:</strong> The projects, code, and photography showcased on this portfolio are my intellectual property. Please do not steal or claim them as your own.</li>
+            </ul>
+          </section>
+        </div>
       </div>
     </div>
 
