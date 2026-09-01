@@ -120,10 +120,15 @@ export default async function handler(req, res) {
           .single();
 
         if (ipRecord) {
-          currentIpCount = ipRecord.message_count || 0;
-          if (currentIpCount >= 3 && ipRecord.banned_until > now) {
-            canSend = false; // Block IP if they sent more than 3 welcome emails in 24 hours
-            console.log("Blocked spam attempt from IP:", ip);
+          if (ipRecord.is_banned === true) {
+            canSend = false; // Block permanently banned IPs
+            console.log("Blocked attempt from permanently banned IP:", ip);
+          } else {
+            currentIpCount = ipRecord.message_count || 0;
+            if (currentIpCount >= 3 && ipRecord.banned_until > now) {
+              canSend = false; // Block IP if they sent more than 3 welcome emails in 24 hours
+              console.log("Blocked spam attempt from IP:", ip);
+            }
           }
         }
 

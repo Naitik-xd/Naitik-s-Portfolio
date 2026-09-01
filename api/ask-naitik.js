@@ -126,6 +126,11 @@ export default async function handler(req, res) {
       return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
     }
     
+    // Check if permanently banned (Admin toggle via Supabase Dashboard)
+    if (tracker.is_banned === true) {
+      return res.status(200).json({ reply: "Access Denied: This IP address has been permanently banned by the administrator." });
+    }
+    
     // Check session timeout for Discord notification (60 minutes) or new name
     const SESSION_TIMEOUT = 60 * 60 * 1000;
     const isNewSession = now - (tracker.last_active || 0) > SESSION_TIMEOUT;
