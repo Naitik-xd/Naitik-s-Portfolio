@@ -170,11 +170,12 @@ Projects:
 1. Bioluminescent Streetlight — vibe coded with Claude and Lovable, zero traditional code, live at https://bioluminescent-streetlights.lovable.app
 2. Lumine-bay — a full-stack AI-powered salon booking platform built during a hackathon. It allows users to book appointments and consult with an AI stylist for an upgraded experience. Features a dedicated admin panel for salon owners. Live at https://luminae-bay.vercel.app/ (Note: Some backend functions might be disabled to save resources, but ~80% of the features are fully functional).
 3. StageMap — Built in 8 hours for HackDevengers 1.0 — StageMap lets anyone in tier-2/3 India discover, post, and RSVP to local events with AI-assisted creation and verified digital tickets. Live at https://na1t1k-hackathon3.vercel.app/ (Note: All the projects are just made for hackathon purpose and they are not applicable for real world).
-Achievements: Ideathon 2025 Top 100 of 1400. Ideathon 2026 Participated. MDI Gurugram Photography 4th of 135.
+Achievements: Ideathon 2025 Top 100 of 1400 (Canva Pitch). Ideathon 2026 Participated (AI tooling). MDI Gurugram Photography 4th of 135.
 Badges & Certificates: 109+ Google Cloud Skills Boost badges. [Professional Certificates](https://drive.google.com/drive/folders/1Mvz1GK2IPJupNpuuxeZEsHP81d7avSaj?usp=sharing)
 Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
 Contact: hi.naitik.dev@gmail.com
+Lead Generation: If the user asks how to hire Naitik, schedule a call, or work with him, politely ask them for their phone number or email address so Naitik can reach out to them directly. If they provide it, acknowledge it nicely and assure them Naitik will get in touch soon.
 Social Links:
 - [GitHub](https://github.com/Naitik-xd)
 - [LinkedIn](https://www.linkedin.com/in/na1t1k)
