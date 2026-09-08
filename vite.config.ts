@@ -35,37 +35,16 @@ export default defineConfig(() => {
                     let responseBody = '';
                     
                     const mockRes = {
-                      headersSent: false,
                       setHeader(k, v) { headers[k] = v; return this; },
                       status(code) { statusCode = code; return this; },
-                      json(data) { this.end(JSON.stringify(data)); return this; },
-                      write(data) {
-                        if (!this.headersSent) {
-                          res.statusCode = statusCode;
-                          for (const [k, v] of Object.entries(headers)) {
-                            res.setHeader(k, v);
-                          }
-                          this.headersSent = true;
-                        }
-                        res.write(data);
-                        return this;
-                      },
-                      flush() {
-                        if (res.flush) res.flush();
-                      },
+                      json(data) { responseBody = JSON.stringify(data); this.end(); return this; },
                       end(data) { 
-                        if (!this.headersSent) {
-                          res.statusCode = statusCode;
-                          for (const [k, v] of Object.entries(headers)) {
-                            res.setHeader(k, v);
-                          }
-                          this.headersSent = true;
+                        if (data) responseBody = data; 
+                        res.statusCode = statusCode;
+                        for (const [k, v] of Object.entries(headers)) {
+                          res.setHeader(k, v as string | number | readonly string[]);
                         }
-                        if (data) {
-                          res.end(data);
-                        } else {
-                          res.end();
-                        }
+                        res.end(responseBody);
                       }
                     };
                     
@@ -105,37 +84,16 @@ export default defineConfig(() => {
                     let responseBody = '';
                     
                     const mockRes = {
-                      headersSent: false,
                       setHeader(k, v) { headers[k] = v; return this; },
                       status(code) { statusCode = code; return this; },
-                      json(data) { this.end(JSON.stringify(data)); return this; },
-                      write(data) {
-                        if (!this.headersSent) {
-                          res.statusCode = statusCode;
-                          for (const [k, v] of Object.entries(headers)) {
-                            res.setHeader(k, v);
-                          }
-                          this.headersSent = true;
-                        }
-                        res.write(data);
-                        return this;
-                      },
-                      flush() {
-                        if (res.flush) res.flush();
-                      },
+                      json(data) { responseBody = JSON.stringify(data); this.end(); return this; },
                       end(data) { 
-                        if (!this.headersSent) {
-                          res.statusCode = statusCode;
-                          for (const [k, v] of Object.entries(headers)) {
-                            res.setHeader(k, v);
-                          }
-                          this.headersSent = true;
+                        if (data) responseBody = data; 
+                        res.statusCode = statusCode;
+                        for (const [k, v] of Object.entries(headers)) {
+                          res.setHeader(k, v as string | number | readonly string[]);
                         }
-                        if (data) {
-                          res.end(data);
-                        } else {
-                          res.end();
-                        }
+                        res.end(responseBody);
                       }
                     };
                     
