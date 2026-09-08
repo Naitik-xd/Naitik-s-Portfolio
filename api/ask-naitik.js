@@ -296,8 +296,8 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
     let lastError = "Upstream API error";
 
     for (const model of modelsToTry) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
-      
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
       try {
         response = await fetch(apiUrl, {
           method: 'POST',
@@ -307,15 +307,13 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
           body: JSON.stringify(payload)
         });
 
+        data = await response.json();
+
         if (response.ok) {
-          break; // Success! Break out of the loop
+          // Success! Break out of the loop
+          break;
         } else {
-          try {
-            data = await response.json();
-            lastError = (data.error && data.error.message) ? data.error.message : `API Error on ${model}`;
-          } catch(e) {
-            lastError = `API Error on ${model}`;
-          }
+          lastError = (data.error && data.error.message) ? data.error.message : `API Error on ${model}`;
         }
       } catch (err) {
         lastError = err.message;
@@ -323,108 +321,62 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
     }
 
     if (!response || !response.ok) {
+      // If all models hit quota or fail, return the error so the user can debug their API key
       return res.status(200).json({ reply: `Error: ${lastError}` });
     }
 
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    if (res.flushHeaders) res.flushHeaders();
+    let reply = "I couldn't process that request at this time.";
+    let action = null;
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
-    let fullText = "";
-    let fullFunctionCall = null;
+    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
+      const parts = data.candidates[0].content.parts;
+      const functionCallPart = parts.find(p => p.functionCall);
+      const textPart = parts.find(p => p.text);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // keep the incomplete line in the buffer
+      if (functionCallPart) {
+        const functionName = functionCallPart.functionCall.name;
+        const args = functionCallPart.functionCall.args;
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const dataStr = line.slice(6);
-          if (dataStr === '[DONE]') continue;
-          try {
-            const dataObj = JSON.parse(dataStr);
-            if (dataObj.candidates && dataObj.candidates.length > 0) {
-              const parts = dataObj.candidates[0].content?.parts || [];
-              const funcPart = parts.find(p => p.functionCall);
-              const textPart = parts.find(p => p.text);
-              
-              if (funcPart) {
-                fullFunctionCall = funcPart.functionCall;
-              }
-              if (textPart) {
-                fullText += textPart.text;
-                res.write(`data: ${JSON.stringify({ text: textPart.text })}\n\n`);
-                if (res.flush) res.flush();
-              }
-            }
-          } catch(e) {}
+        if (functionName === 'switchTheme') {
+          action = { type: 'switchTheme', theme: args.theme };
+          reply = textPart ? textPart.text : `Switched the website to ${args.theme} mode!`;
+        } else if (functionName === 'sendFeedbackToDiscord') {
+          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
+          notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Message:** ${args.feedbackMessage}`).catch(console.error);
+          reply = textPart ? textPart.text : "Thank you! I've sent your feedback directly to Naitik's Discord.";
+        } else if (functionName === 'forwardUnknownQuery') {
+          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
+          notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`).catch(console.error);
+          reply = textPart ? textPart.text : "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
+        } else if (functionName === 'reportAbuse') {
+          // Handle abuse strike
+          tracker.strikes++;
+          
+          if (tracker.strikes >= 3) {
+             tracker.banned_until = now + BAN_DURATION;
+             supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' }).then().catch(console.error);
+             
+             if (tracker.strikes === 3) {
+                 notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`).catch(console.error);
+             }
+             reply = textPart ? textPart.text : "Conversation terminated due to abuse. You are blocked for 24 hours.";
+          } else {
+             supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' }).then().catch(console.error);
+             if (tracker.strikes === 2) {
+               reply = textPart ? textPart.text : "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
+             } else {
+               reply = textPart ? textPart.text : "I didn't quite catch that. Did you have a question about Naitik's work?";
+             }
+          }
         }
+      } else if (textPart) {
+        reply = textPart.text;
       }
     }
-    
-    // Check if we need to execute a tool
-    if (fullFunctionCall) {
-      const functionName = fullFunctionCall.name;
-      const args = fullFunctionCall.args;
-      let action = null;
-      let reply = null;
-      
-      if (functionName === 'switchTheme') {
-        action = { type: 'switchTheme', theme: args.theme };
-        reply = fullText || `Switched the website to ${args.theme} mode!`;
-      } else if (functionName === 'sendFeedbackToDiscord') {
-        const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
-        await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Message:** ${args.feedbackMessage}`);
-        reply = fullText || "Thank you! I've sent your feedback directly to Naitik's Discord.";
-      } else if (functionName === 'forwardUnknownQuery') {
-        const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
-        await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`);
-        reply = fullText || "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
-      } else if (functionName === 'reportAbuse') {
-        tracker.strikes++;
-        if (tracker.strikes >= 3) {
-           tracker.banned_until = now + BAN_DURATION;
-           supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' }).then();
-           if (tracker.strikes === 3) {
-               notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`).then();
-           }
-           reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
-        } else {
-           supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' }).then();
-           if (tracker.strikes === 2) {
-             reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
-           } else {
-             reply = "I didn't quite catch that. Did you have a question about Naitik's work?";
-           }
-        }
-      }
-      
-      if (action) {
-         res.write(`data: ${JSON.stringify({ action })}\n\n`);
-      }
-      if (reply) {
-         res.write(`data: ${JSON.stringify({ text: reply })}\n\n`);
-      }
-      if (res.flush) res.flush();
-    }
 
-    res.write('data: [DONE]\n\n');
-    res.end();
+    return res.status(200).json({ reply, action });
   } catch (error) {
     console.error("Function error:", error);
-    try {
-      res.status(500).json({ error: "Internal Server Error" });
-    } catch(e) {
-      res.end();
-    }
+    return res.status(500).json({ error: "Internal Server Error" });
   }
-}
 }

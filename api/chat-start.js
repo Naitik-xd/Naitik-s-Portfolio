@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     }
 
     // 1. Notify Discord (Immediate)
-    await notifyDiscord(`👋 **New chat started!**\nName: ${safeName}\nContact: ${userContact || 'None provided'}\nIP: ||${ip}||`);
+    notifyDiscord(`👋 **New chat started!**\nName: ${safeName}\nContact: ${userContact || 'None provided'}\nIP: ||${ip}||`);
 
     // 2. Email logic (Only if contact is an email)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -220,9 +220,9 @@ export default async function handler(req, res) {
         try {
           // Attempt sending with fallback if OAuth tokens are missing
           if (process.env.OAUTH_REFRESH_TOKEN) {
-            await transporter.sendMail(mailOptions);
+            transporter.sendMail(mailOptions).catch(console.error);
           } else if (process.env.EMAIL_APP_PASSWORD) {
-            await fallbackTransporter.sendMail(mailOptions);
+            fallbackTransporter.sendMail(mailOptions).catch(console.error);
           } else {
              console.log("No Email Credentials available to send email to", userContact);
           }
@@ -230,20 +230,20 @@ export default async function handler(req, res) {
           // Mark cooldown in Supabase
           if (supabase && !isAdmin) {
             // Log the email recipient cooldown
-            await supabase.from('rate_limits').upsert({
+            supabase.from('rate_limits').upsert({
               ip_address: emailTrackerKey,
               strikes: 0,
               message_count: 1,
               banned_until: now + WELCOME_COOLDOWN
-            }, { onConflict: 'ip_address' });
+            }, { onConflict: 'ip_address' }).then().catch(console.error);
 
             // Log the sender IP cooldown
-            await supabase.from('rate_limits').upsert({
+            supabase.from('rate_limits').upsert({
               ip_address: ipTrackerKey,
               strikes: 0,
               message_count: currentIpCount + 1,
               banned_until: now + WELCOME_COOLDOWN
-            }, { onConflict: 'ip_address' });
+            }, { onConflict: 'ip_address' }).then().catch(console.error);
           }
         } catch (mailError) {
           console.error("Failed to send welcome email:", mailError);

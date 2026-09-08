@@ -1362,67 +1362,32 @@
             throw new Error(errMsg);
           }
 
-          typing.classList.remove('visible');
+          const data = await res.json();
+          let reply = data.reply || "Oops! Couldn't understand the response.";
           
-          const msgContainer = document.getElementById('chat-messages');
-          const msgDiv = document.createElement('div');
-          msgDiv.className = 'chat-msg bot';
-          msgContainer.appendChild(msgDiv);
-          msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
-          
-          const reader = res.body.getReader();
-          const decoder = new TextDecoder("utf-8");
-          let buffer = "";
-          let fullReply = "";
-          
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
+          if (data.action && data.action.type === 'switchTheme') {
+            const targetTheme = data.action.theme;
+            const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
             
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); // keep last incomplete line
-            
-            for (let line of lines) {
-              if (line.startsWith('data: ')) {
-                const dataStr = line.slice(6);
-                if (dataStr === '[DONE]') continue;
-                try {
-                  const data = JSON.parse(dataStr);
-                  if (data.action && data.action.type === 'switchTheme') {
-                    const targetTheme = data.action.theme;
-                    const isLight = targetTheme === 'light';
-                    if (isLight) document.body.classList.add('light-mode');
-                    else document.body.classList.remove('light-mode');
-                    localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
-                  }
-                  if (data.text) {
-                    fullReply += data.text;
-                    msgDiv.innerHTML = window.marked ? marked.parse(fullReply) : fullReply;
-                    msgContainer.scrollTo({ top: msgContainer.scrollHeight });
-                  }
-                  if (data.reply) {
-                    fullReply = data.reply;
-                    msgDiv.innerHTML = window.marked ? marked.parse(fullReply) : fullReply;
-                    msgContainer.scrollTo({ top: msgContainer.scrollHeight });
-                  }
-                } catch(e) {}
+            if (currentTheme === targetTheme) {
+              reply = `The website is already in ${targetTheme} mode.`;
+            } else {
+              const isLight = targetTheme === 'light';
+              if (isLight) {
+                document.body.classList.add('light-mode');
+              } else {
+                document.body.classList.remove('light-mode');
               }
+              localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
             }
           }
 
-          if (window.marked) {
-            const links = msgDiv.querySelectorAll('a');
-            links.forEach(link => link.setAttribute('target', '_blank'));
-          }
-          
-          if (!fullReply) {
-            fullReply = "Oops! Couldn't understand the response.";
-            msgDiv.textContent = fullReply;
-          }
+          typing.classList.remove('visible');
+          addMessage(reply, 'bot');
 
+          // Update context
           chatHistory.push({ role: 'user', content: text });
-          chatHistory.push({ role: 'model', content: fullReply });
+          chatHistory.push({ role: 'model', content: reply });
           if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
 
         } catch (error) {
