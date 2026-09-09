@@ -137,7 +137,8 @@ export default async function handler(req, res) {
     const isNewName = safeName !== "A visitor" && tracker.user_name !== safeName;
 
     if ((isNewSession || isNewName) && message && !message.startsWith('/admin')) {
-      const contactText = safeContact !== "Not provided" ? `\n📞 Contact: ${safeContact}` : '';
+      const contactText = safeContact !== "Not provided" ? `
+📞 Contact: ${safeContact}` : '';
       await notifyDiscord(`🔔 **${safeName}** (IP: \`${ip}\`) started a new chat session!${contactText}`);
     }
 
@@ -339,7 +340,7 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
       
-      const lines = buffer.split('\\n');
+      const lines = buffer.split('\n');
       buffer = lines.pop(); // keep last incomplete line
       
       for (const line of lines) {
@@ -362,12 +363,16 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
                   action = { type: 'switchTheme', theme: args.theme };
                   internalReply = `Switched the website to ${args.theme} mode!`;
                 } else if (functionName === 'sendFeedbackToDiscord') {
-                  const contactText = safeContact !== "Not provided" ? `\\n**Email:** ${safeContact}` : '';
-                  await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\\n**Message:** ${args.feedbackMessage}`);
+                  const contactText = safeContact !== "Not provided" ? `\
+**Email:** ${safeContact}` : '';
+                  await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\
+**Message:** ${args.feedbackMessage}`);
                   internalReply = "Thank you! I've sent your feedback directly to Naitik's Discord.";
                 } else if (functionName === 'forwardUnknownQuery') {
-                  const contactText = safeContact !== "Not provided" ? `\\n**Email:** ${safeContact}` : '';
-                  await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\\n**Query:** ${args.query}`);
+                  const contactText = safeContact !== "Not provided" ? `\
+**Email:** ${safeContact}` : '';
+                  await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\
+**Query:** ${args.query}`);
                   internalReply = "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
                 } else if (functionName === 'reportAbuse') {
                   tracker.strikes++;
@@ -388,9 +393,9 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
                   }
                 }
                 
-                res.write(JSON.stringify({ action, reply: internalReply }) + '\\n');
+                res.write(JSON.stringify({ action, reply: internalReply }) + '\n');
               } else if (p.text) {
-                res.write(JSON.stringify({ text: p.text }) + '\\n');
+                res.write(JSON.stringify({ text: p.text }) + '\n');
               }
             }
           } catch (e) {
@@ -405,7 +410,7 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
     if (!res.headersSent) {
       return res.status(500).json({ error: "Internal Server Error" });
     } else {
-      res.write(JSON.stringify({ error: "Internal Server Error" }) + '\\n');
+      res.write(JSON.stringify({ error: "Internal Server Error" }) + '\n');
       res.end();
     }
   }

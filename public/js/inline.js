@@ -74,14 +74,41 @@
       ];
 
       const aiToolsList = [
-        { name: 'Claude', desc: 'Advanced reasoning and coding partner', color: '#CC785C', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:linear-gradient(135deg,#CC785C,#E8875A);\ndisplay:flex;align-items:center;justify-content:center;">\n<i data-lucide="brain" class="w-6 h-6 text-white"></i></div>` },
-        { name: 'Gemini', desc: 'Multimodal intelligence and fast iteration', color: '#4285f4', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:#0d0d0d;display:flex;align-items:center;\njustify-content:center;">\n<i data-lucide="sparkles" class="w-6 h-6 text-[#4285f4]"></i></div>` },
-        { name: 'ChatGPT', desc: 'Versatile conversational AI and ideation', color: '#10A37F', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:#ffffff;display:flex;align-items:center;\njustify-content:center;">\n<i data-lucide="message-square-text" class="w-6 h-6 text-[#10A37F]"></i></div>` },
-        { name: 'Lovable', desc: 'Turning vibes into working web apps', color: '#FF6B9D', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:linear-gradient(135deg,#FF6B9D,#C44FE0);\ndisplay:flex;align-items:center;justify-content:center;">\n<i data-lucide="heart" class="w-6 h-6 text-white"></i></div>` },
-        { name: 'Antigravity', desc: 'Agentic coding and complex problem solving', color: '#8b5cf6', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:linear-gradient(135deg,#6366F1,#8B5CF6);\ndisplay:flex;align-items:center;justify-content:center;\nfont-family:'Sora',sans-serif;font-size:15px;\nfont-weight:800;color:white;letter-spacing:-0.5px">\nAG</div>` },
-        { name: 'Nano Banana', desc: 'Niche AI tool exploration', color: '#FFD700', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:#FFD700;display:flex;align-items:center;\njustify-content:center;font-family:'Sora',sans-serif;\nfont-size:15px;font-weight:800;color:#000">NB</div>` },
-        { name: 'Google Veo', desc: 'Advanced generative video AI', color: '#1a6fd4', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:linear-gradient(135deg,#1a6fd4,#4a9eff);\ndisplay:flex;align-items:center;justify-content:center;">\n<i data-lucide="video" class="w-6 h-6 text-white"></i></div>` },
-        { name: 'Google AI Studio', desc: 'Rapid prototyping with Gemini models', color: '#fbbf24', logo: `<div style="width:48px;height:48px;border-radius:12px;\nbackground:linear-gradient(135deg,#f59e0b,#fbbf24);\ndisplay:flex;align-items:center;justify-content:center;\nfont-family:'Sora',sans-serif;font-size:15px;\nfont-weight:800;color:white">AI</div>` }
+        { name: 'Claude', desc: 'Advanced reasoning and coding partner', color: '#CC785C', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:linear-gradient(135deg,#CC785C,#E8875A);
+display:flex;align-items:center;justify-content:center;">
+<i data-lucide="brain" class="w-6 h-6 text-white"></i></div>` },
+        { name: 'Gemini', desc: 'Multimodal intelligence and fast iteration', color: '#4285f4', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:#0d0d0d;display:flex;align-items:center;
+justify-content:center;">
+<i data-lucide="sparkles" class="w-6 h-6 text-[#4285f4]"></i></div>` },
+        { name: 'ChatGPT', desc: 'Versatile conversational AI and ideation', color: '#10A37F', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:#ffffff;display:flex;align-items:center;
+justify-content:center;">
+<i data-lucide="message-square-text" class="w-6 h-6 text-[#10A37F]"></i></div>` },
+        { name: 'Lovable', desc: 'Turning vibes into working web apps', color: '#FF6B9D', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:linear-gradient(135deg,#FF6B9D,#C44FE0);
+display:flex;align-items:center;justify-content:center;">
+<i data-lucide="heart" class="w-6 h-6 text-white"></i></div>` },
+        { name: 'Antigravity', desc: 'Agentic coding and complex problem solving', color: '#8b5cf6', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:linear-gradient(135deg,#6366F1,#8B5CF6);
+display:flex;align-items:center;justify-content:center;
+font-family:'Sora',sans-serif;font-size:15px;
+font-weight:800;color:white;letter-spacing:-0.5px">
+AG</div>` },
+        { name: 'Nano Banana', desc: 'Niche AI tool exploration', color: '#FFD700', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:#FFD700;display:flex;align-items:center;
+justify-content:center;font-family:'Sora',sans-serif;
+font-size:15px;font-weight:800;color:#000">NB</div>` },
+        { name: 'Google Veo', desc: 'Advanced generative video AI', color: '#1a6fd4', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:linear-gradient(135deg,#1a6fd4,#4a9eff);
+display:flex;align-items:center;justify-content:center;">
+<i data-lucide="video" class="w-6 h-6 text-white"></i></div>` },
+        { name: 'Google AI Studio', desc: 'Rapid prototyping with Gemini models', color: '#fbbf24', logo: `<div style="width:48px;height:48px;border-radius:12px;
+background:linear-gradient(135deg,#f59e0b,#fbbf24);
+display:flex;align-items:center;justify-content:center;
+font-family:'Sora',sans-serif;font-size:15px;
+font-weight:800;color:white">AI</div>` }
       ];
 
       const marqueePhrases = "NAITIK AGARWAL • AI EXPLORER • PROMPT ENGINEER • VIBE CODER • CREATOR • ";
@@ -1387,7 +1414,7 @@
             if (done) break;
             buffer += decoder.decode(value, { stream: true });
             
-            const lines = buffer.split('\\n');
+            const lines = buffer.split('\n');
             buffer = lines.pop(); 
             
             for (const line of lines) {
@@ -1395,13 +1422,13 @@
               try {
                 const chunk = JSON.parse(line);
                 if (chunk.error) {
-                   botBubbleRawText += "\\nError: " + chunk.error;
+                   botBubbleRawText += "\nError: " + chunk.error;
                 }
                 if (chunk.text) {
                    botBubbleRawText += chunk.text;
                 }
                 if (chunk.reply) {
-                   botBubbleRawText += "\\n" + chunk.reply;
+                   botBubbleRawText += "\n" + chunk.reply;
                 }
                 if (chunk.action && chunk.action.type === 'switchTheme') {
                    const targetTheme = chunk.action.theme;
