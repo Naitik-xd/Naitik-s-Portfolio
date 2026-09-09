@@ -30,21 +30,14 @@ export default defineConfig(() => {
                       body: body || '{}',
                     };
                     
-                    let statusCode = 200;
-                    const headers = {};
-                    let responseBody = '';
-                    
                     const mockRes = {
-                      setHeader(k, v) { headers[k] = v; return this; },
-                      status(code) { statusCode = code; return this; },
-                      json(data) { responseBody = JSON.stringify(data); this.end(); return this; },
+                      setHeader(k, v) { res.setHeader(k, v); return this; },
+                      status(code) { res.statusCode = code; return this; },
+                      write(data) { res.write(data); return this; },
+                      json(data) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); return this; },
                       end(data) { 
-                        if (data) responseBody = data; 
-                        res.statusCode = statusCode;
-                        for (const [k, v] of Object.entries(headers)) {
-                          res.setHeader(k, v as string | number | readonly string[]);
-                        }
-                        res.end(responseBody);
+                        if (data) res.write(data);
+                        res.end();
                       }
                     };
                     
@@ -79,21 +72,14 @@ export default defineConfig(() => {
                       body: body || '{}',
                     };
                     
-                    let statusCode = 200;
-                    const headers = {};
-                    let responseBody = '';
-                    
                     const mockRes = {
-                      setHeader(k, v) { headers[k] = v; return this; },
-                      status(code) { statusCode = code; return this; },
-                      json(data) { responseBody = JSON.stringify(data); this.end(); return this; },
+                      setHeader(k, v) { res.setHeader(k, v); return this; },
+                      status(code) { res.statusCode = code; return this; },
+                      write(data) { res.write(data); return this; },
+                      json(data) { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(data)); return this; },
                       end(data) { 
-                        if (data) responseBody = data; 
-                        res.statusCode = statusCode;
-                        for (const [k, v] of Object.entries(headers)) {
-                          res.setHeader(k, v as string | number | readonly string[]);
-                        }
-                        res.end(responseBody);
+                        if (data) res.write(data);
+                        res.end();
                       }
                     };
                     

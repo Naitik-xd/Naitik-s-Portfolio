@@ -1370,32 +1370,68 @@
             throw new Error(errMsg);
           }
 
-          const data = await res.json();
-          let reply = data.reply || "Oops! Couldn't understand the response.";
+          typing.classList.remove('visible');
           
-          if (data.action && data.action.type === 'switchTheme') {
-            const targetTheme = data.action.theme;
-            const currentTheme = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+          const msgDiv = document.createElement('div');
+          msgDiv.className = `chat-msg bot`;
+          msgContainer.appendChild(msgDiv);
+          
+          let botBubbleRawText = '';
+          
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder("utf-8");
+          let buffer = '';
+          
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
             
-            if (currentTheme === targetTheme) {
-              reply = `The website is already in ${targetTheme} mode.`;
-            } else {
-              const isLight = targetTheme === 'light';
-              if (isLight) {
-                document.body.classList.add('light-mode');
-              } else {
-                document.body.classList.remove('light-mode');
+            const lines = buffer.split('\\n');
+            buffer = lines.pop(); 
+            
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try {
+                const chunk = JSON.parse(line);
+                if (chunk.error) {
+                   botBubbleRawText += "\\nError: " + chunk.error;
+                }
+                if (chunk.text) {
+                   botBubbleRawText += chunk.text;
+                }
+                if (chunk.reply) {
+                   botBubbleRawText += "\\n" + chunk.reply;
+                }
+                if (chunk.action && chunk.action.type === 'switchTheme') {
+                   const targetTheme = chunk.action.theme;
+                   const isLight = targetTheme === 'light';
+                   if (isLight) document.body.classList.add('light-mode');
+                   else document.body.classList.remove('light-mode');
+                   localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
+                }
+                if (window.marked) {
+                  msgDiv.innerHTML = marked.parse(botBubbleRawText);
+                } else {
+                  msgDiv.textContent = botBubbleRawText;
+                }
+                msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+              } catch (e) {
+                console.error("Stream parse error", e, line);
               }
-              localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
             }
           }
 
-          typing.classList.remove('visible');
-          addMessage(reply, 'bot');
+          if (window.marked) {
+            const links = msgDiv.querySelectorAll('a');
+            links.forEach(link => link.setAttribute('target', '_blank'));
+          }
 
           // Update context
           chatHistory.push({ role: 'user', content: text });
-          chatHistory.push({ role: 'model', content: reply });
+          chatHistory.push({ role: 'model', content: botBubbleRawText });
+          
+          // Sliding window for memory (prevent slowdown)
           if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
 
         } catch (error) {

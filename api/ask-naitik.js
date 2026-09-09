@@ -292,11 +292,10 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
     };
 
     let response;
-    let data;
     let lastError = "Upstream API error";
 
     for (const model of modelsToTry) {
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${apiKey}`;
       
       try {
         response = await fetch(apiUrl, {
@@ -307,12 +306,11 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
           body: JSON.stringify(payload)
         });
 
-        data = await response.json();
-
         if (response.ok) {
           // Success! Break out of the loop
           break;
         } else {
+          const data = await response.json();
           lastError = (data.error && data.error.message) ? data.error.message : `API Error on ${model}`;
         }
       } catch (err) {
@@ -325,56 +323,90 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
       return res.status(200).json({ reply: `Error: ${lastError}` });
     }
 
-    let reply = "I couldn't process that request at this time.";
-    let action = null;
-    if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
-      const parts = data.candidates[0].content.parts;
-      const functionCallPart = parts.find(p => p.functionCall);
-      const textPart = parts.find(p => p.text);
-
-      if (functionCallPart) {
-        const functionName = functionCallPart.functionCall.name;
-        const args = functionCallPart.functionCall.args;
-        if (functionName === 'switchTheme') {
-          action = { type: 'switchTheme', theme: args.theme };
-          reply = textPart ? textPart.text : `Switched the website to ${args.theme} mode!`;
-        } else if (functionName === 'sendFeedbackToDiscord') {
-          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
-          await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Message:** ${args.feedbackMessage}`);
-          reply = textPart ? textPart.text : "Thank you! I've sent your feedback directly to Naitik's Discord.";
-        } else if (functionName === 'forwardUnknownQuery') {
-          const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
-          await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`);
-          reply = "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
-        } else if (functionName === 'reportAbuse') {
-          // Handle abuse strike
-          tracker.strikes++;
-          
-          if (tracker.strikes >= 3) {
-             tracker.banned_until = now + BAN_DURATION;
-             await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
-             
-             if (tracker.strikes === 3) {
-                 await notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
-             }
-             reply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
-          } else {
-             await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
-             if (tracker.strikes === 2) {
-               reply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
-             } else {
-               reply = "I didn't quite catch that. Did you have a question about Naitik's work?";
-             }
-          }
-        }
-      } else if (textPart) {
-        reply = textPart.text;
-      }
+    res.setHeader('Content-Type', 'application/x-ndjson');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (res.flushHeaders) {
+      res.flushHeaders();
     }
 
-    return res.status(200).json({ reply, action });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      
+      const lines = buffer.split('\\n');
+      buffer = lines.pop(); // keep last incomplete line
+      
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const dataStr = line.slice(6);
+          if (dataStr.trim() === '[DONE]') continue;
+          try {
+            const data = JSON.parse(dataStr);
+            const parts = data.candidates?.[0]?.content?.parts || [];
+            
+            for (const p of parts) {
+              if (p.functionCall) {
+                const functionName = p.functionCall.name;
+                const args = p.functionCall.args;
+                
+                let action = null;
+                let internalReply = "";
+
+                if (functionName === 'switchTheme') {
+                  action = { type: 'switchTheme', theme: args.theme };
+                  internalReply = `Switched the website to ${args.theme} mode!`;
+                } else if (functionName === 'sendFeedbackToDiscord') {
+                  const contactText = safeContact !== "Not provided" ? `\\n**Email:** ${safeContact}` : '';
+                  await notifyDiscord(`💬 **Feedback from ${safeName}** (IP: \`${ip}\`)${contactText}\\n**Message:** ${args.feedbackMessage}`);
+                  internalReply = "Thank you! I've sent your feedback directly to Naitik's Discord.";
+                } else if (functionName === 'forwardUnknownQuery') {
+                  const contactText = safeContact !== "Not provided" ? `\\n**Email:** ${safeContact}` : '';
+                  await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\\n**Query:** ${args.query}`);
+                  internalReply = "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
+                } else if (functionName === 'reportAbuse') {
+                  tracker.strikes++;
+                  if (tracker.strikes >= 3) {
+                     tracker.banned_until = now + BAN_DURATION;
+                     await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
+                     if (tracker.strikes === 3) {
+                         await notifyDiscord(`🚨 **SPAM ALERT**: IP \`${ip}\` was just BANNED for 24 hours after 3 strikes. Reason: ${args.reason}`);
+                     }
+                     internalReply = "Conversation terminated due to abuse. You are blocked for 24 hours.";
+                  } else {
+                     await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
+                     if (tracker.strikes === 2) {
+                       internalReply = "Warning: Please ask a clear question or stop the inappropriate behavior, or I will have to pause this chat.";
+                     } else {
+                       internalReply = "I didn't quite catch that. Did you have a question about Naitik's work?";
+                     }
+                  }
+                }
+                
+                res.write(JSON.stringify({ action, reply: internalReply }) + '\\n');
+              } else if (p.text) {
+                res.write(JSON.stringify({ text: p.text }) + '\\n');
+              }
+            }
+          } catch (e) {
+            console.error("Parse error", e, "on string", dataStr);
+          }
+        }
+      }
+    }
+    res.end();
   } catch (error) {
     console.error("Function error:", error);
-    return res.status(500).json({ error: "Internal Server Error" });
+    if (!res.headersSent) {
+      return res.status(500).json({ error: "Internal Server Error" });
+    } else {
+      res.write(JSON.stringify({ error: "Internal Server Error" }) + '\\n');
+      res.end();
+    }
   }
 }
