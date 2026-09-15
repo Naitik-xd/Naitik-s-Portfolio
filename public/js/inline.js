@@ -1344,9 +1344,17 @@ font-weight:800;color:white">AI</div>` }
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(msgDiv);
         
-        // Scroll the message to the top of the container
-        msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return msgDiv;
+        if (type === 'user') {
+          msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
+        } else {
+          // If the bot response is taller than the chat window, scroll to the start of the response
+          if (msgDiv.clientHeight > msgContainer.clientHeight) {
+            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            // Otherwise just scroll smoothly to the bottom to show the whole message
+            msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
+          }
+        }
       }
 
       async function sendChatMessage() {
@@ -1358,7 +1366,7 @@ font-weight:800;color:white">AI</div>` }
         // const suggestions = document.getElementById('chat-suggestions');
         // if (suggestions) suggestions.style.display = 'none';
 
-        const userMsgDiv = addMessage(text, 'user');
+        addMessage(text, 'user');
         input.value = '';
 
         const sendBtn = document.getElementById('chat-send');
@@ -1369,7 +1377,7 @@ font-weight:800;color:white">AI</div>` }
         
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(typing); // move it to bottom
-        userMsgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
 
         try {
           const res = await fetch('/api/ask-naitik', {
@@ -1426,7 +1434,7 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  // msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
                 } catch (e) {
                   console.error("Stream parse error", e, line);
                 }
@@ -1444,7 +1452,7 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  // msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
                 } catch(e) {}
               }
               break;
