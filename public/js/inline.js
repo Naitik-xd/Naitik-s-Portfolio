@@ -1434,7 +1434,7 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  // msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
                 } catch (e) {
                   console.error("Stream parse error", e, line);
                 }
@@ -1452,7 +1452,7 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  // msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
                 } catch(e) {}
               }
               break;
