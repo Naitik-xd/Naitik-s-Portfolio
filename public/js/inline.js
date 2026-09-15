@@ -1344,17 +1344,9 @@ font-weight:800;color:white">AI</div>` }
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(msgDiv);
         
-        if (type === 'user') {
-          msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
-        } else {
-          // If the bot response is taller than the chat window, scroll to the start of the response
-          if (msgDiv.clientHeight > msgContainer.clientHeight) {
-            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            // Otherwise just scroll smoothly to the bottom to show the whole message
-            msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
-          }
-        }
+        // Scroll the message to the top of the container
+        msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return msgDiv;
       }
 
       async function sendChatMessage() {
@@ -1366,7 +1358,7 @@ font-weight:800;color:white">AI</div>` }
         // const suggestions = document.getElementById('chat-suggestions');
         // if (suggestions) suggestions.style.display = 'none';
 
-        addMessage(text, 'user');
+        const userMsgDiv = addMessage(text, 'user');
         input.value = '';
 
         const sendBtn = document.getElementById('chat-send');
@@ -1377,7 +1369,7 @@ font-weight:800;color:white">AI</div>` }
         
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(typing); // move it to bottom
-        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
+        userMsgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         try {
           const res = await fetch('/api/ask-naitik', {
