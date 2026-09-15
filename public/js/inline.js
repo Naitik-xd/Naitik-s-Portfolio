@@ -1411,41 +1411,51 @@ font-weight:800;color:white">AI</div>` }
           
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-            
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); 
-            
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              try {
-                const chunk = JSON.parse(line);
-                if (chunk.error) {
-                   botBubbleRawText += "\nError: " + chunk.error;
+            if (value) {
+              buffer += decoder.decode(value, { stream: !done });
+              const lines = buffer.split('\n');
+              buffer = lines.pop();
+              for (const line of lines) {
+                if (!line.trim()) continue;
+                try {
+                  const chunk = JSON.parse(line);
+                  if (chunk.error) botBubbleRawText += "\nError: " + chunk.error;
+                  if (chunk.text) botBubbleRawText += chunk.text;
+                  if (chunk.reply) botBubbleRawText += (botBubbleRawText ? "\n" : "") + chunk.reply;
+                  if (chunk.action && chunk.action.type === 'switchTheme') {
+                     const targetTheme = chunk.action.theme;
+                     const isLight = targetTheme === 'light';
+                     if (isLight) document.body.classList.add('light-mode');
+                     else document.body.classList.remove('light-mode');
+                     localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
+                  }
+                  if (window.marked) {
+                    msgDiv.innerHTML = marked.parse(botBubbleRawText);
+                  } else {
+                    msgDiv.textContent = botBubbleRawText;
+                  }
+                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                } catch (e) {
+                  console.error("Stream parse error", e, line);
                 }
-                if (chunk.text) {
-                   botBubbleRawText += chunk.text;
-                }
-                if (chunk.reply) {
-                   botBubbleRawText += "\n" + chunk.reply;
-                }
-                if (chunk.action && chunk.action.type === 'switchTheme') {
-                   const targetTheme = chunk.action.theme;
-                   const isLight = targetTheme === 'light';
-                   if (isLight) document.body.classList.add('light-mode');
-                   else document.body.classList.remove('light-mode');
-                   localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
-                }
-                if (window.marked) {
-                  msgDiv.innerHTML = marked.parse(botBubbleRawText);
-                } else {
-                  msgDiv.textContent = botBubbleRawText;
-                }
-                msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
-              } catch (e) {
-                console.error("Stream parse error", e, line);
               }
+            }
+            if (done) {
+              if (buffer.trim()) {
+                try {
+                  const chunk = JSON.parse(buffer);
+                  if (chunk.error) botBubbleRawText += "\nError: " + chunk.error;
+                  if (chunk.text) botBubbleRawText += chunk.text;
+                  if (chunk.reply) botBubbleRawText += (botBubbleRawText ? "\n" : "") + chunk.reply;
+                  if (window.marked) {
+                    msgDiv.innerHTML = marked.parse(botBubbleRawText);
+                  } else {
+                    msgDiv.textContent = botBubbleRawText;
+                  }
+                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                } catch(e) {}
+              }
+              break;
             }
           }
 

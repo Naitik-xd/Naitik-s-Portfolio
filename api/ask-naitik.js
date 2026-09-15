@@ -71,9 +71,9 @@ export default async function handler(req, res) {
         if (targetIp === 'me') targetIp = ip;
         
         await supabase.from('rate_limits').delete().eq('ip_address', targetIp);
-        return res.status(200).json({ reply: `Success: IP ${targetIp} has been unbanned and rate limits reset.` });
+        res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: `Success: IP ${targetIp} has been unbanned and rate limits reset.` }) + '\n');
       }
-      return res.status(200).json({ reply: "Failed to unban: Incorrect password or format. Use: /admin-unban [IP or 'me'] [PASSWORD]" });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: "Failed to unban: Incorrect password or format. Use: /admin-unban [IP or 'me'] [PASSWORD]" }) + '\n');
     }
 
     // Handle admin ban command
@@ -96,9 +96,9 @@ export default async function handler(req, res) {
         
         await notifyDiscord(`🛡️ **Manual Ban Admin**: IP \`${targetIp}\` was just manually BANNED for 24 hours.`);
         
-        return res.status(200).json({ reply: `Success: IP ${targetIp} has been manually banned for 24 hours.` });
+        res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: `Success: IP ${targetIp} has been manually banned for 24 hours.` }) + '\n');
       }
-      return res.status(200).json({ reply: "Failed to ban: Incorrect password or format. Use: /admin-ban [IP] [PASSWORD]" });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: "Failed to ban: Incorrect password or format. Use: /admin-ban [IP] [PASSWORD]" }) + '\n');
     }
 
     const now = Date.now();
@@ -123,12 +123,12 @@ export default async function handler(req, res) {
     
     // Check if banned
     if (tracker.banned_until > now) {
-      return res.status(200).json({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: "You have been temporarily blocked due to abuse or spam. Please try again tomorrow." }) + '\n');
     }
     
     // Check if permanently banned (Admin toggle via Supabase Dashboard)
     if (tracker.is_banned === true) {
-      return res.status(200).json({ reply: "Access Denied: This IP address has been permanently banned by the administrator." });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: "Access Denied: This IP address has been permanently banned by the administrator." }) + '\n');
     }
     
     // Check session timeout for Discord notification (60 minutes) or new name
@@ -154,7 +154,7 @@ export default async function handler(req, res) {
          tracker.message_count++; // Increment so we only notify once
          await supabase.from('rate_limits').upsert(tracker, { onConflict: 'ip_address' });
       }
-      return res.status(200).json({ reply: "You've reached the message limit. Please try again in a few hours." });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: "You've reached the message limit. Please try again in a few hours." }) + '\n');
     }
     
     // Increment message count
@@ -321,7 +321,7 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
 
     if (!response || !response.ok) {
       // If all models hit quota or fail, return the error so the user can debug their API key
-      return res.status(200).json({ reply: `Error: ${lastError}` });
+      res.setHeader('Content-Type', 'application/x-ndjson'); return res.status(200).send(JSON.stringify({ reply: `Error: ${lastError}` }) + '\n');
     }
 
     res.setHeader('Content-Type', 'application/x-ndjson');
