@@ -30,9 +30,9 @@ const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     type: 'OAuth2',
-    user: 'hi.naitik.dev@gmail.com', // user's new email
+    user: process.env.EMAIL_USER || '', // user's email
     // These will be retrieved from the OAuth integration context:
-    clientId: process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || '701672043717-bc1mqag2qgbhqktrh2v4hb0jukvg5kh7.apps.googleusercontent.com',
+    clientId: process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || '',
     clientSecret: process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET || '',
     refreshToken: process.env.OAUTH_REFRESH_TOKEN || '', 
   }
@@ -42,7 +42,7 @@ const transporter = nodemailer.createTransport({
 const fallbackTransporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER || 'hi.naitik.dev@gmail.com',
+    user: process.env.EMAIL_USER || '',
     pass: process.env.EMAIL_APP_PASSWORD || ''
   }
 });
@@ -147,7 +147,7 @@ export default async function handler(req, res) {
       if (canSend) {
         // Prepare Email
         const mailOptions = {
-          from: `"Naitik Agarwal" <${process.env.EMAIL_USER || 'hi.naitik.dev@gmail.com'}>`,
+          from: `"Naitik Agarwal" <${process.env.EMAIL_USER || ''}>`,
           to: userContact,
           subject: 'Thanks for visiting my portfolio!',
           html: `

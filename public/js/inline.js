@@ -1344,17 +1344,7 @@ font-weight:800;color:white">AI</div>` }
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(msgDiv);
         
-        if (type === 'user') {
-          msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
-        } else {
-          // If the bot response is taller than the chat window, scroll to the start of the response
-          if (msgDiv.clientHeight > msgContainer.clientHeight) {
-            msgDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            // Otherwise just scroll smoothly to the bottom to show the whole message
-            msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
-          }
-        }
+        return msgDiv;
       }
 
       async function sendChatMessage() {
@@ -1366,7 +1356,7 @@ font-weight:800;color:white">AI</div>` }
         // const suggestions = document.getElementById('chat-suggestions');
         // if (suggestions) suggestions.style.display = 'none';
 
-        addMessage(text, 'user');
+        const userMsgDiv = addMessage(text, 'user');
         input.value = '';
 
         const sendBtn = document.getElementById('chat-send');
@@ -1377,7 +1367,23 @@ font-weight:800;color:white">AI</div>` }
         
         const msgContainer = document.getElementById('chat-messages');
         msgContainer.appendChild(typing); // move it to bottom
-        msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'smooth' });
+        
+        let spacer = document.getElementById('chat-dynamic-spacer');
+        if (!spacer) {
+          spacer = document.createElement('div');
+          spacer.id = 'chat-dynamic-spacer';
+          spacer.style.flexShrink = '0';
+          msgContainer.appendChild(spacer);
+        } else {
+          msgContainer.appendChild(spacer);
+        }
+        spacer.style.height = msgContainer.clientHeight + 'px';
+
+        // Scroll the user's message to the top of the chat view
+        // We use offsetTop to prevent scrolling the whole page (which scrollIntoView can do)
+        setTimeout(() => {
+          msgContainer.scrollTo({ top: userMsgDiv.offsetTop - 20, behavior: 'smooth' });
+        }, 10);
 
         try {
           const res = await fetch('/api/ask-naitik', {
@@ -1434,7 +1440,9 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  if (spacer) {
+                    spacer.style.height = Math.max(0, msgContainer.clientHeight - userMsgDiv.clientHeight - msgDiv.clientHeight - 60) + 'px';
+                  }
                 } catch (e) {
                   console.error("Stream parse error", e, line);
                 }
@@ -1452,7 +1460,9 @@ font-weight:800;color:white">AI</div>` }
                   } else {
                     msgDiv.textContent = botBubbleRawText;
                   }
-                  msgContainer.scrollTo({ top: msgContainer.scrollHeight, behavior: 'auto' });
+                  if (spacer) {
+                    spacer.style.height = Math.max(0, msgContainer.clientHeight - userMsgDiv.clientHeight - msgDiv.clientHeight - 60) + 'px';
+                  }
                 } catch(e) {}
               }
               break;
