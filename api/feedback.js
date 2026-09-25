@@ -22,7 +22,15 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, phone, message } = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body || '{}');
+      } catch {
+        body = {};
+      }
+    }
+    const { name, email, phone, message } = body || {};
 
     if (!name || !email || !message) {
       return res.status(400).json({ error: "Missing required fields" });

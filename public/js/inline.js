@@ -112,7 +112,7 @@ font-weight:800;color:white">AI</div>` }
       ];
 
       const marqueePhrases = "NAITIK AGARWAL • AI EXPLORER • PROMPT ENGINEER • VIBE CODER • CREATOR • ";
-      const badgeList = ["Google AI Fundamentals", "Azure AI Engineer", "Prompt Engineering", "Google Cloud Skills", "Microsoft Copilot", "Generative AI", "Power Platform", "Machine Learning", "147 plus and Counting 🔥"];
+      const badgeList = ["Google AI Fundamentals", "Azure AI Engineer", "Prompt Engineering", "Google Cloud Skills", "Microsoft Copilot", "Generative AI", "Power Platform", "Machine Learning", "173 plus and Counting 🔥"];
 
       // Compile Marquee elements programmatically on script loading
       const repeatString = (str, count) => Array(count).fill(str).join(' ');

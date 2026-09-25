@@ -24,10 +24,17 @@ export default defineConfig(() => {
                     const func = await import(path.resolve(import.meta.dirname, `.${apiPath}.js`) + '?t=' + Date.now());
                     
                     // Mock Vercel req/res objects
+                    let parsedBody: any = body;
+                    try {
+                      parsedBody = body ? JSON.parse(body) : {};
+                    } catch {
+                      parsedBody = body || {};
+                    }
                     const mockReq = {
                       method: req.method,
                       headers: req.headers,
-                      body: body || '{}',
+                      body: parsedBody,
+                      socket: req.socket,
                     };
                     
                     const mockRes = {
@@ -66,10 +73,17 @@ export default defineConfig(() => {
                   try {
                     const func = await import(path.resolve(import.meta.dirname, `.${apiPath}.js`) + '?t=' + Date.now());
                     
+                    let parsedBody: any = body;
+                    try {
+                      parsedBody = body ? JSON.parse(body) : {};
+                    } catch {
+                      parsedBody = body || {};
+                    }
                     const mockReq = {
                       method: req.method,
                       headers: req.headers,
-                      body: body || '{}',
+                      body: parsedBody,
+                      socket: req.socket,
                     };
                     
                     const mockRes = {

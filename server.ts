@@ -51,6 +51,21 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
+    app.use(express.json());
+    app.use("/api", async (req, res, next) => {
+      try {
+        const route = req.path.replace(/^\//, "").split("?")[0];
+        const modulePath = path.join(process.cwd(), "api", `${route}.js`);
+        const mod = await import(modulePath);
+        if (typeof mod.default === "function") {
+          return await mod.default(req, res);
+        }
+      } catch (err) {
+        return res.status(500).json({ error: String(err) });
+      }
+      next();
+    });
+
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
     // NOTE: Express 4 format for catch-all
