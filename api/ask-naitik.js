@@ -29,10 +29,27 @@ if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
   supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 }
 
+function isOriginAllowed(origin) {
+  if (!origin) return true;
+  const cleanOrigin = origin.replace(/\/$/, '');
+  if (cleanOrigin === 'https://na1t1k.vercel.app') return true;
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
+  if (cleanOrigin.endsWith('.run.app')) return true;
+  return false;
+}
+
 export default async function handler(req, res) {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  const rawOrigin = req.headers?.origin || req.headers?.Origin;
+  const origin = rawOrigin ? String(rawOrigin).replace(/\/$/, '') : '';
+
+  if (!isOriginAllowed(origin)) {
+    return res.status(403).json({ error: "Access forbidden: CORS origin not allowed" });
+  }
+
+  res.setHeader("Access-Control-Allow-Origin", origin || "https://na1t1k.vercel.app");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Vary", "Origin");
 
   if (req.method === "OPTIONS") {
     return res.status(200).end();
