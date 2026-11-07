@@ -641,10 +641,10 @@
             <!-- Stat Card 2 -->
             <div class="tilt-card relative bg-surface/30 backdrop-blur-md border border-outline rounded-3xl p-8 flex flex-col justify-between h-[180px] hover:-translate-y-2 transition-transform duration-300 group cursor-default">
               <div>
-                <span class="counter-num text-4xl md:text-5xl font-sora font-extrabold text-gold leading-none block" data-target="3" data-format="standard">0</span>
+                <span class="counter-num text-4xl md:text-5xl font-sora font-extrabold text-gold leading-none block" data-target="4" data-format="standard">0</span>
                 <span class="font-sora font-bold text-white text-base mt-2 block">Hackathons</span>
               </div>
-              <span class="font-space text-xs text-gold/80 tracking-wider">Top 100/1400 Ideathon 2025</span>
+              <span class="font-space text-xs text-gold/80 tracking-wider">Rank 24/746 • Top 100 Ideathon</span>
             </div>
 
             <!-- Stat Card 3 -->
@@ -811,13 +811,13 @@
             <div class="absolute inset-0 bg-gradient-to-t from-[#07091a] via-[#07091a]/40 to-transparent z-10 pointer-events-none"></div>
 
             <img loading="lazy" 
-              src="https://i.ibb.co/yFfgzbsP/sky-tower-1.jpg"
+              src="/sky-tower-1.jpg"
+              onerror="this.onerror=null; this.src='https://i.ibb.co/yFfgzbsP/sky-tower-1.jpg'"
               alt="Sky Tower — MDI Gurugram Photography Competition"
               style="width:100%;height:100%;object-fit:cover;
               object-position:center;display:block;
               transition:transform 0.8s ease;"
               class="group-hover:scale-105"
-              crossorigin="anonymous"
             />
 
             <!-- Info block sitting inside photography bottom-left overlay -->
@@ -903,22 +903,36 @@
             </div>
 
             <!-- Battle Card 2 -->
-            <div class="tilt-card relative bg-surface/30 backdrop-blur-md border border-outline rounded-3xl p-8 md:p-10 flex flex-col gap-6 justify-between hover:border-gold/20 transition-all duration-300">
+            <div class="tilt-card relative bg-surface/30 backdrop-blur-md border border-outline rounded-3xl p-8 md:p-10 flex flex-col gap-6 justify-between hover:border-gold/30 transition-all duration-300">
               <div class="flex flex-col gap-4">
                 <div class="flex justify-between items-center">
                   <span class="font-space text-xs border border-gold/30 bg-gold/5 px-3.5 py-1.5 text-gold rounded-full w-max font-bold">2026</span>
-                  <span class="font-space text-[10px] font-bold text-white/70 border border-outline px-3 py-1.5 rounded-md tracking-wider">PARTICIPANT</span>
+                  <span class="font-sora font-extrabold text-gold text-2xl md:text-3xl shadow-[0_0_15px_rgba(245,166,35,0.2)]">RANK 24 / 746</span>
                 </div>
-                <h3 class="font-sora font-bold text-white text-xl md:text-2xl mt-1">Ideathon 26 Challenger</h3>
+                <h3 class="font-sora font-bold text-white text-xl md:text-2xl mt-1">Shinchan Hackathon</h3>
                 <p class="font-geist text-sm text-textDim leading-relaxed font-light">
-                  Pushed the limits of AI tooling in a rapid-fire competition. Ideas met execution under serious pressure in an intensive AI-focused environment.
+                  Competed in a high-intensity 24-hour open innovation hackathon organized by Devengers and powered by Unstop. Built and shipped <span class="text-white font-medium">Lumen Vibe</span> under intense deadline pressure, securing Rank 24 out of 746 participants nationwide.
                 </p>
+                <div class="flex flex-wrap gap-2.5 mt-1">
+                  <a href="https://lumen-vibe.vercel.app/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-surface/40 hover:bg-gold/10 border border-outline hover:border-gold/40 rounded-full text-xs font-space text-white/90 hover:text-gold transition-all duration-300">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5 text-gold"></i>
+                    <span>Live Project</span>
+                  </a>
+                  <a href="https://drive.google.com/file/d/1dArI4Va-NbpHo8JKlc7ywdzOl5-aYWJz/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-surface/40 hover:bg-gold/10 border border-outline hover:border-gold/40 rounded-full text-xs font-space text-white/90 hover:text-gold transition-all duration-300">
+                    <i data-lucide="award" class="w-3.5 h-3.5 text-gold"></i>
+                    <span>View Certificate</span>
+                  </a>
+                </div>
               </div>
 
-              <!-- Certificate badge anchor -->
-              <div class="flex items-center gap-2 mt-6 pt-6 border-t border-outline/50 font-space text-[10px] uppercase text-textDim tracking-wider">
-                <i data-lucide="award" class="w-4.5 h-4.5 text-gold"></i>
-                <span>Official Badge Issued</span>
+              <!-- Gold progress bar -->
+              <div class="flex flex-col gap-2 mt-6 pt-6 border-t border-outline/50">
+                <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden border border-white/5">
+                  <div class="bg-gold h-full rounded-full progress-bar-val shadow-[0_0_12px_rgba(245,166,35,0.8)]" 
+                       style="width: 0%; transition: width 1.8s cubic-bezier(0.25, 1, 0.5, 1);" 
+                       data-width="3.2%"></div>
+                </div>
+                <span class="font-space text-[10px] uppercase tracking-wider text-gold/90 font-medium">Top 3.2% Nationwide • Rank 24 of 746</span>
               </div>
             </div>
 

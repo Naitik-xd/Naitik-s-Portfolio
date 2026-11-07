@@ -1,0 +1,62 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Runs at 05:00 UTC on Monday, Wednesday, and Friday (3 days a week)
+    - cron: '0 5 * * 1,3,5'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  ping-supabase:
+    name: Ping Supabase REST API
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY || secrets.SUPABASE_ANON_KEY || secrets.SUPABASE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error::SUPABASE_URL secret is not set! Please add SUPABASE_URL to your GitHub repository secrets."
+            exit 1
+          fi
+
+          if [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::Publishable/Anon key secret is not set! Please add SUPABASE_PUBLISHABLE_KEY or SUPABASE_ANON_KEY to your GitHub repository secrets."
+            exit 1
+          fi
+
+          # Strip trailing slash if user pasted URL with slash
+          URL="${SUPABASE_URL%/}"
+
+          echo "Pinging Supabase at $URL..."
+
+          # Query rate_limits table to wake up / keep the Postgres instance active
+          HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" \
+            -X GET "$URL/rest/v1/rate_limits?select=ip_address&limit=1" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            -H "Range: 0-0")
+
+          echo "Response HTTP Status: $HTTP_STATUS"
+          echo "Response Body:"
+          cat response.json
+          echo ""
+
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+            echo "✅ Successfully queried Supabase! Database is active and will not pause."
+          else
+            echo "Attempting fallback query to Supabase REST schema..."
+            ROOT_STATUS=$(curl -s -o root_resp.json -w "%{http_code}" \
+              -X GET "$URL/rest/v1/" \
+              -H "apikey: $SUPABASE_KEY" \
+              -H "Authorization: Bearer $SUPABASE_KEY")
+            
+            echo "Root Status: $ROOT_STATUS"
+            if [ "$ROOT_STATUS" -ge 200 ] && [ "$ROOT_STATUS" -lt 400 ]; then
+              echo "✅ Successfully reached Supabase REST API engine!"
+            else
+              echo "::error::Both table query and root endpoint failed (HTTP $HTTP_STATUS / $ROOT_STATUS). Check your SUPABASE_URL and SUPABASE_ANON_KEY secrets."
+              exit 1
+            fi
+          fi

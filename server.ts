@@ -35,6 +35,8 @@ async function startServer() {
           frameAncestors: ["*"],
         },
       },
+      crossOriginOpenerPolicy: false,
+      xFrameOptions: false,
       crossOriginResourcePolicy: { policy: "cross-origin" },
       referrerPolicy: { policy: "strict-origin-when-cross-origin" },
       xContentTypeOptions: true,
