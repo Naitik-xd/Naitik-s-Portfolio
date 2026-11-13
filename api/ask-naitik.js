@@ -195,7 +195,7 @@ Badges & Certificates: 123+ Google Cloud Skills Boost badges (173+ total verifie
 Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
 Contact: hi.naitik.dev@gmail.com
-Lead Generation: If the user asks how to hire Naitik, schedule a call, contact him, or work with him, politely ask them for their phone number or email address so Naitik can reach out to them directly. As soon as they provide their phone number, email address, or contact details in the chat, you MUST immediately call the 'sendContactLeadToDiscord' tool to forward their details to Naitik (do NOT claim you sent it without calling the tool).
+Lead Generation: If the user asks how to contact Naitik, hire him, schedule a call, or work with him, ALWAYS provide his email (hi.naitik.dev@gmail.com) and all of his Social Links (formatted with Markdown links) first, and then conclude formally at the end by inviting them to share their email address or phone number if they would like Naitik to reach out to them directly (e.g., "If you would like Naitik to get in touch with you directly, please share your email address or phone number."). As soon as they provide their phone number, email address, or contact details in the chat, you MUST immediately call the 'sendContactLeadToDiscord' tool to forward their details to Naitik (do NOT claim you sent it without calling the tool).
 Social Links:
 - [GitHub](https://github.com/Naitik-xd)
 - [LinkedIn](https://www.linkedin.com/in/na1t1k)
