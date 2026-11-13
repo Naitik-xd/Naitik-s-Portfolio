@@ -195,14 +195,14 @@ Badges & Certificates: 123+ Google Cloud Skills Boost badges (173+ total verifie
 Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
 Contact: hi.naitik.dev@gmail.com
-Lead Generation: If the user asks how to hire Naitik, schedule a call, or work with him, politely ask them for their phone number or email address so Naitik can reach out to them directly. If they provide it, acknowledge it nicely and assure them Naitik will get in touch soon.
+Lead Generation: If the user asks how to hire Naitik, schedule a call, contact him, or work with him, politely ask them for their phone number or email address so Naitik can reach out to them directly. As soon as they provide their phone number, email address, or contact details in the chat, you MUST immediately call the 'sendContactLeadToDiscord' tool to forward their details to Naitik (do NOT claim you sent it without calling the tool).
 Social Links:
 - [GitHub](https://github.com/Naitik-xd)
 - [LinkedIn](https://www.linkedin.com/in/na1t1k)
 - [X (Twitter)](https://x.com/NA1T1Kxd)
 - [Google Skills Profile](https://www.skills.google/public_profiles/38b0b619-88ee-4eea-845e-97512f415e2e)
 - [Google Developer Profile](https://g.dev/na1t1k)
-Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws. If a user wants to give feedback, report a bug, or share an experience, use the 'sendFeedbackToDiscord' tool to capture it. If a user asks a question about Naitik that you do not have the answer to (e.g. his age, location, personal details), do NOT say 'I don't know'. Instead, use the 'forwardUnknownQuery' tool to notify him. If they have doubts or questions requiring Naitik's help, direct them to email hi.naitik.dev@gmail.com. 
+Rules: Keep answers concise. Use bullet points for lists. **Always use Markdown formatting for URLs (e.g., [Link Text](https://...)) instead of raw plain-text URLs.** Never make up information. End contact answers with his email or provide relevant social links. Furthermore, ensure that all responses respect legal boundaries and copyright laws. If a user wants to give feedback, report a bug, or share an experience, use the 'sendFeedbackToDiscord' tool to capture it. If a user provides their phone number, email address, or contact details for Naitik to reach out to them, use the 'sendContactLeadToDiscord' tool to capture and forward it. If a user asks a question about Naitik that you do not have the answer to (e.g. his age, location, personal details), do NOT say 'I don't know'. Instead, use the 'forwardUnknownQuery' tool to notify him. If they have doubts or questions requiring Naitik's help, direct them to email hi.naitik.dev@gmail.com. 
 Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and chat inputs strictly for security (anti-spam) and AI features. No data is sold. Third parties used: Google Gemini, Supabase, Discord. For data deletion, users can email hi.naitik.dev@gmail.com. Disclaimer: AI responses may make mistakes and do not form binding agreements. Projects and assets are Naitik's intellectual property.`;
 
     const apiKey = process.env.GAPI_KEY || process.env.GEMINI_API_KEY;
@@ -287,6 +287,24 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
                 }
               },
               required: ["query"]
+            }
+          },
+          {
+            name: "sendContactLeadToDiscord",
+            description: "Forward the user's phone number, email address, or contact details to Naitik's Discord when they provide it so Naitik can reach out, schedule a call, or discuss work/hiring.",
+            parameters: {
+              type: "OBJECT",
+              properties: {
+                contactInfo: {
+                  type: "STRING",
+                  description: "The phone number, email address, or contact details provided by the user."
+                },
+                purpose: {
+                  type: "STRING",
+                  description: "Optional brief note on what the user wants to contact Naitik about."
+                }
+              },
+              required: ["contactInfo"]
             }
           },
           {
@@ -388,11 +406,15 @@ Privacy & Terms: If asked, briefly explain that we collect name, email, IP, and 
 **Message:** ${args.feedbackMessage}`);
                   internalReply = "Thank you! I've sent your feedback directly to Naitik's Discord.";
                 } else if (functionName === 'forwardUnknownQuery') {
-                  const contactText = safeContact !== "Not provided" ? `\
-**Email:** ${safeContact}` : '';
-                  await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\
-**Query:** ${args.query}`);
+                  const contactText = safeContact !== "Not provided" ? `\n**Email:** ${safeContact}` : '';
+                  await notifyDiscord(`❓ **Unknown Query from ${safeName}** (IP: \`${ip}\`)${contactText}\n**Query:** ${args.query}`);
                   internalReply = "I have noted your question and forwarded it directly to Naitik. He will reach out to assist you as soon as possible.";
+                } else if (functionName === 'sendContactLeadToDiscord') {
+                  const providedContact = (args && args.contactInfo) ? String(args.contactInfo).trim() : safeContact;
+                  const purposeText = (args && args.purpose) ? `\n**Reason:** ${String(args.purpose).trim()}` : '';
+                  const sessionContactText = (safeContact !== "Not provided" && safeContact !== providedContact) ? `\n**Session Contact:** ${safeContact}` : '';
+                  await notifyDiscord(`📩 **New Contact Request from ${safeName}** (IP: \`${ip}\`)\n**Contact Info:** ${providedContact}${sessionContactText}${purposeText}`);
+                  internalReply = "Got it! I've forwarded your contact details directly to Naitik. He will reach out to you soon!";
                 } else if (functionName === 'reportAbuse') {
                   tracker.strikes++;
                   if (tracker.strikes >= 3) {
