@@ -3,7 +3,7 @@ function isOriginAllowed(origin) {
   const cleanOrigin = origin.replace(/\/$/, '');
   if (cleanOrigin === 'https://na1t1k.vercel.app') return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
-  if (cleanOrigin.endsWith('.run.app')) return true;
+  if (/^https:\/\/ais-(dev|pre)-5k22rnmiwf6qnn23nlkjdb-391725186047\.asia-southeast1\.run\.app$/.test(cleanOrigin)) return true;
   return false;
 }
 

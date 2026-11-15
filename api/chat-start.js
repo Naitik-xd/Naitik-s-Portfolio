@@ -12,7 +12,10 @@ async function notifyDiscord(msg) {
       await fetch(process.env.DISCORD_WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: msg })
+        body: JSON.stringify({
+          content: String(msg).substring(0, 1950),
+          allowed_mentions: { parse: [] }
+        })
       });
     } catch (e) {
       console.error("Webhook error:", e);
@@ -52,7 +55,7 @@ function isOriginAllowed(origin) {
   const cleanOrigin = origin.replace(/\/$/, '');
   if (cleanOrigin === 'https://na1t1k.vercel.app') return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
-  if (cleanOrigin.endsWith('.run.app')) return true;
+  if (/^https:\/\/ais-(dev|pre)-5k22rnmiwf6qnn23nlkjdb-391725186047\.asia-southeast1\.run\.app$/.test(cleanOrigin)) return true;
   return false;
 }
 
@@ -83,26 +86,39 @@ export default async function handler(req, res) {
     const { userName, userContact, recaptchaToken } = body;
 
     const safeName = (userName || "Anonymous").substring(0, 50).replace(/[<>]/g, "");
-    const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+    const safeContact = typeof userContact === 'string' ? userContact.substring(0, 100).replace(/[<>]/g, "").trim() : '';
+    const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1';
+    const ip = String(rawIp).split(',')[0].trim();
     
-    // Verify reCAPTCHA
-    if (process.env.RECAPTCHA_SECRET_KEY && recaptchaToken) {
+    // Verify reCAPTCHA when configured (fail closed if token is missing or invalid)
+    if (process.env.RECAPTCHA_SECRET_KEY) {
+      if (!recaptchaToken || typeof recaptchaToken !== 'string') {
+        return res.status(400).json({ error: "reCAPTCHA verification required." });
+      }
       try {
-        const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${recaptchaToken}&remoteip=${ip}`;
-        const recaptchaRes = await fetch(verifyUrl, { method: 'POST' });
+        const params = new URLSearchParams({
+          secret: process.env.RECAPTCHA_SECRET_KEY,
+          response: recaptchaToken,
+          remoteip: ip
+        });
+        const recaptchaRes = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+          method: 'POST',
+          body: params
+        });
         const recaptchaJson = await recaptchaRes.json();
         
-        if (!recaptchaJson.success || recaptchaJson.score < 0.5) {
+        if (!recaptchaJson.success || (typeof recaptchaJson.score === 'number' && recaptchaJson.score < 0.5)) {
           console.warn("reCAPTCHA failed or score too low:", recaptchaJson);
           return res.status(400).json({ error: "Bot detected." });
         }
       } catch (err) {
         console.error("reCAPTCHA verify error:", err);
+        return res.status(400).json({ error: "reCAPTCHA verification failed." });
       }
     }
 
     // 1. Notify Discord (Immediate)
-    await notifyDiscord(`👋 **New chat started!**\nName: ${safeName}\nContact: ${userContact || 'None provided'}\nIP: ||${ip}||`);
+    await notifyDiscord(`👋 **New chat started!**\nName: ${safeName}\nContact: ${safeContact || 'None provided'}\nIP: ||${ip}||`);
 
     // 2. Email logic (Only if contact is an email)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

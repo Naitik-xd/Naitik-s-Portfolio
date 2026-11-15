@@ -1331,13 +1331,52 @@ font-weight:800;color:white">AI</div>` }
         }
       });
 
+      function escapeHtmlStr(str) {
+        return String(str || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function initSafeMarked() {
+        if (!window.marked || window._safeMarkedInitialized) return;
+        window._safeMarkedInitialized = true;
+        window.marked.use({
+          renderer: {
+            html(token) {
+              return escapeHtmlStr(token && (token.text || token.raw) || '');
+            },
+            image(token) {
+              return escapeHtmlStr(token && token.text || '');
+            },
+            link({ href, title, tokens }) {
+              const label = this.parser.parseInline(tokens);
+              const safeHref = typeof href === 'string' ? href.trim() : '';
+              const isAllowedProtocol = /^(https?:\/\/|mailto:|\/|#)/i.test(safeHref);
+              if (!isAllowedProtocol) return label;
+              const titleAttr = title ? ` title="${escapeHtmlStr(title)}"` : '';
+              return `<a href="${escapeHtmlStr(safeHref)}"${titleAttr} target="_blank" rel="noopener noreferrer">${label}</a>`;
+            }
+          }
+        });
+      }
+
+      function renderSafeMarkdown(msgDiv, rawText) {
+        if (window.marked) {
+          initSafeMarked();
+          msgDiv.innerHTML = window.marked.parse(rawText);
+        } else {
+          msgDiv.textContent = rawText;
+        }
+      }
+
       function addMessage(text, type) {
         const msgDiv = document.createElement('div');
         msgDiv.className = `chat-msg ${type}`;
         if (type === 'bot' && window.marked) {
-          msgDiv.innerHTML = marked.parse(text);
-          const links = msgDiv.querySelectorAll('a');
-          links.forEach(link => link.setAttribute('target', '_blank'));
+          renderSafeMarkdown(msgDiv, text);
         } else {
           msgDiv.textContent = text;
         }
@@ -1435,11 +1474,7 @@ font-weight:800;color:white">AI</div>` }
                      else document.body.classList.remove('light-mode');
                      localStorage.setItem('portfolio-theme', isLight ? 'light' : 'dark');
                   }
-                  if (window.marked) {
-                    msgDiv.innerHTML = marked.parse(botBubbleRawText);
-                  } else {
-                    msgDiv.textContent = botBubbleRawText;
-                  }
+                  renderSafeMarkdown(msgDiv, botBubbleRawText);
                   if (spacer) {
                     spacer.style.height = Math.max(0, msgContainer.clientHeight - userMsgDiv.clientHeight - msgDiv.clientHeight - 60) + 'px';
                   }
@@ -1455,11 +1490,7 @@ font-weight:800;color:white">AI</div>` }
                   if (chunk.error) botBubbleRawText += "\nError: " + chunk.error;
                   if (chunk.text) botBubbleRawText += chunk.text;
                   if (chunk.reply) botBubbleRawText += (botBubbleRawText ? "\n" : "") + chunk.reply;
-                  if (window.marked) {
-                    msgDiv.innerHTML = marked.parse(botBubbleRawText);
-                  } else {
-                    msgDiv.textContent = botBubbleRawText;
-                  }
+                  renderSafeMarkdown(msgDiv, botBubbleRawText);
                   if (spacer) {
                     spacer.style.height = Math.max(0, msgContainer.clientHeight - userMsgDiv.clientHeight - msgDiv.clientHeight - 60) + 'px';
                   }
@@ -1471,7 +1502,10 @@ font-weight:800;color:white">AI</div>` }
 
           if (window.marked) {
             const links = msgDiv.querySelectorAll('a');
-            links.forEach(link => link.setAttribute('target', '_blank'));
+            links.forEach(link => {
+              link.setAttribute('target', '_blank');
+              link.setAttribute('rel', 'noopener noreferrer');
+            });
           }
 
           // Update context
@@ -1542,6 +1576,14 @@ function attachEvents() {
 
     const sendBtn = document.getElementById('chat-send');
     if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+
+    const skyTowerImg = document.getElementById('mdi-sky-tower-img');
+    if (skyTowerImg) {
+      skyTowerImg.addEventListener('error', function onSkyTowerError() {
+        skyTowerImg.removeEventListener('error', onSkyTowerError);
+        skyTowerImg.src = 'https://i.ibb.co/yFfgzbsP/sky-tower-1.jpg';
+      });
+    }
 }
 
 if (document.readyState === 'loading') {

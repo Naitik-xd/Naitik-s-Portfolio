@@ -1,11 +1,21 @@
 export const config = { maxDuration: 60 };
 
+import { createClient } from '@supabase/supabase-js';
+
+const FEEDBACK_LIMIT_MAX = 5;
+const FEEDBACK_WINDOW = 3 * 60 * 60 * 1000; // 3 hours
+
+let supabase = null;
+if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+}
+
 function isOriginAllowed(origin) {
   if (!origin) return true;
   const cleanOrigin = origin.replace(/\/$/, '');
   if (cleanOrigin === 'https://na1t1k.vercel.app') return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
-  if (cleanOrigin.endsWith('.run.app')) return true;
+  if (/^https:\/\/ais-(dev|pre)-5k22rnmiwf6qnn23nlkjdb-391725186047\.asia-southeast1\.run\.app$/.test(cleanOrigin)) return true;
   return false;
 }
 
@@ -39,10 +49,68 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, phone, message } = req.body;
+    const rawIp = req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown';
+    const ip = String(rawIp).split(',')[0].trim();
 
-    if (!name || !email || !message) {
+    if (supabase) {
+      const now = Date.now();
+      const feedbackIpKey = `FEEDBACK_${ip}`;
+      const { data: fbRecord } = await supabase
+        .from('rate_limits')
+        .select('*')
+        .eq('ip_address', feedbackIpKey)
+        .single();
+
+      if (fbRecord) {
+        if (fbRecord.is_banned === true || (fbRecord.banned_until && fbRecord.banned_until > now)) {
+          return res.status(429).json({ error: "Too many feedback submissions. Please try again later." });
+        }
+        const inWindow = fbRecord.reset_time && now <= fbRecord.reset_time;
+        const count = inWindow ? (fbRecord.message_count || 0) : 0;
+        if (count >= FEEDBACK_LIMIT_MAX) {
+          return res.status(429).json({ error: "Feedback limit reached. Please try again in a few hours." });
+        }
+        await supabase.from('rate_limits').upsert({
+          ip_address: feedbackIpKey,
+          message_count: count + 1,
+          reset_time: inWindow ? fbRecord.reset_time : now + FEEDBACK_WINDOW,
+          strikes: 0,
+          banned_until: 0,
+          last_active: now
+        }, { onConflict: 'ip_address' });
+      } else {
+        await supabase.from('rate_limits').upsert({
+          ip_address: feedbackIpKey,
+          message_count: 1,
+          reset_time: now + FEEDBACK_WINDOW,
+          strikes: 0,
+          banned_until: 0,
+          last_active: now
+        }, { onConflict: 'ip_address' });
+      }
+    }
+
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {
+        return res.status(400).json({ error: "Invalid request payload." });
+      }
+    }
+    const { name, email, phone, message } = body || {};
+
+    const cleanName = typeof name === 'string' ? name.replace(/[<>]/g, '').trim().substring(0, 100) : '';
+    const cleanEmail = typeof email === 'string' ? email.replace(/[<>]/g, '').trim().substring(0, 100) : '';
+    const cleanPhone = typeof phone === 'string' ? phone.replace(/[<>]/g, '').trim().substring(0, 30) : '';
+    const cleanMessage = typeof message === 'string' ? message.replace(/[<>]/g, '').trim().substring(0, 1000) : '';
+
+    if (!cleanName || !cleanEmail || !cleanMessage) {
       return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ error: "Please provide a valid email address." });
     }
 
     // Prepare Discord message payload
@@ -50,17 +118,17 @@ export default async function handler(req, res) {
       title: "New Feedback / Bug Report 🐞",
       color: 0x4A9EFF, // primaryBlue
       fields: [
-        { name: "Name", value: name, inline: true },
-        { name: "Email", value: email, inline: true },
+        { name: "Name", value: cleanName, inline: true },
+        { name: "Email", value: cleanEmail, inline: true },
       ],
       timestamp: new Date().toISOString(),
     };
 
-    if (phone) {
-      embed.fields.push({ name: "Phone", value: phone, inline: true });
+    if (cleanPhone) {
+      embed.fields.push({ name: "Phone", value: cleanPhone, inline: true });
     }
 
-    embed.fields.push({ name: "Message / Experience", value: message });
+    embed.fields.push({ name: "Message / Experience", value: cleanMessage });
 
     const discordPayload = {
       embeds: [embed],

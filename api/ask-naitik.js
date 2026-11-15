@@ -14,7 +14,7 @@ async function notifyDiscord(msg) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          content: msg,
+          content: String(msg).substring(0, 1950),
           allowed_mentions: { parse: [] } 
         })
       });
@@ -34,7 +34,7 @@ function isOriginAllowed(origin) {
   const cleanOrigin = origin.replace(/\/$/, '');
   if (cleanOrigin === 'https://na1t1k.vercel.app') return true;
   if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(cleanOrigin)) return true;
-  if (cleanOrigin.endsWith('.run.app')) return true;
+  if (/^https:\/\/ais-(dev|pre)-5k22rnmiwf6qnn23nlkjdb-391725186047\.asia-southeast1\.run\.app$/.test(cleanOrigin)) return true;
   return false;
 }
 
@@ -190,7 +190,7 @@ Projects:
 3. StageMap — Built in 8 hours for HackDevengers 1.0 — StageMap lets anyone in tier-2/3 India discover, post, and RSVP to local events with AI-assisted creation and verified digital tickets. Live at https://na1t1k-hackathon3.vercel.app/ (Note: All the projects are just made for hackathon purpose and they are not applicable for real world).
 4. Lumen Vibe — Built in 24 hours for the Shinchan Online Hackathon 2026 by Devengers & Unstop, securing Rank 24 out of 746 participants. Live at https://lumen-vibe.vercel.app/
 Discontinued Projects: The 'Proof of Work' project (previously at https://my-proof-of-work.vercel.app/) has been completely discontinued by Naitik. Never list it as an active project. If a user asks about it, politely state that it has been retired/discontinued.
-Achievements: Ideathon 2025 Top 100 of 1400 (Canva Pitch). Shinchan Online Hackathon 2026 Rank 24 of 746 by Devengers & Unstop (Built Lumen Vibe, Certificate: https://drive.google.com/file/d/1dArI4Va-NbpHo8JKlc7ywdzOl5-aYWJz/view?usp=drivesdk). MDI Gurugram Photography 4th of 135.
+Achievements: Ideathon 2025 Top 100 of 1400 (Canva Pitch). Shinchan Online Hackathon 2026 Rank 24 of 746 by Devengers & Unstop (Built Lumen Vibe, Certificate: https://drive.google.com/file/d/1dArI4Va-NbpHo8JKlc7ywdzOl5-aYWJz/view?usp=drivesdk). Google Code Vipassana Season 16 Top 100 (Position 52, Event: https://rsvp.withgoogle.com/events/cv?pli=1). MDI Gurugram Photography 4th of 135.
 Badges & Certificates: 123+ Google Cloud Skills Boost badges (173+ total verified skill badges across Google and Microsoft, updated 25 September 2026). [Professional Certificates](https://drive.google.com/drive/folders/1Mvz1GK2IPJupNpuuxeZEsHP81d7avSaj?usp=sharing)
 Photography Portfolio: [View Samples](https://drive.google.com/drive/folders/13o9lsdFMzAd1akjRWrQ6kRFkeVkwBRYQ?usp=sharing) (Provide this link whenever asked for photographs, image links, or samples).
 Goals: Achieve big in AI, shape it not just use it, stay curious.
