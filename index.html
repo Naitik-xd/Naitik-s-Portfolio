@@ -1508,6 +1508,12 @@
         background-color: rgba(74, 158, 255, 0.2);
         color: white;
       }
+      .chat-chip.is-disabled,
+      .chat-chip[aria-disabled="true"] {
+        opacity: 0.45;
+        pointer-events: none;
+        cursor: not-allowed;
+      }
 
       #chat-input-area {
         padding: 16px;
@@ -1606,6 +1612,6 @@
 
     
     <script type="module" src="/src/main.tsx"></script>
-      <script defer src="/js/inline.js?v=11"></script>
+      <script defer src="/js/inline.js?v=12"></script>
   </body>
 </html>

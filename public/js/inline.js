@@ -1201,6 +1201,8 @@ font-weight:800;color:white">AI</div>` }
 
       let chatHistory = [];
       let isChatOpen = false;
+      let isChatBusy = false;
+      const quickReplyCache = new Map();
       window.chatUserName = '';
       window.chatUserContact = '';
       
@@ -1311,16 +1313,83 @@ font-weight:800;color:white">AI</div>` }
         }
       }
 
+      function setChatBusy(busy) {
+        isChatBusy = Boolean(busy);
+        const sendBtn = document.getElementById('chat-send');
+        if (sendBtn) sendBtn.disabled = isChatBusy;
+        const chips = document.querySelectorAll('#chat-suggestions .chat-chip');
+        chips.forEach((chip) => {
+          chip.classList.toggle('is-disabled', isChatBusy);
+          if (isChatBusy) {
+            chip.setAttribute('aria-disabled', 'true');
+          } else {
+            chip.removeAttribute('aria-disabled');
+          }
+        });
+      }
+
+      function isCacheableQuickReply(replyText) {
+        const trimmed = String(replyText || '').trim();
+        if (!trimmed) return false;
+        if (/^(?:Error:|Oops!)/i.test(trimmed)) return false;
+        if (/(?:You've reached the message limit|You have been temporarily blocked|Access Denied)/i.test(trimmed)) return false;
+        return true;
+      }
+
       function handleEnter(e) {
         if (e.key === 'Enter') {
           e.preventDefault();
-          sendChatMessage();
+          if (!isChatBusy) {
+            sendChatMessage();
+          }
         }
       }
 
       function sendSuggested(text) {
-        document.getElementById('chat-input').value = text;
-        sendChatMessage();
+        if (isChatBusy) return;
+        const key = String(text || '').trim();
+        if (!key) return;
+
+        if (quickReplyCache.has(key)) {
+          const cachedReply = quickReplyCache.get(key);
+          const msgContainer = document.getElementById('chat-messages');
+          const typing = document.getElementById('chat-typing');
+          if (typing) typing.classList.remove('visible');
+
+          const userMsgDiv = addMessage(key, 'user');
+          const msgDiv = document.createElement('div');
+          msgDiv.className = 'chat-msg bot';
+          msgContainer.appendChild(msgDiv);
+          renderSafeMarkdown(msgDiv, cachedReply);
+
+          if (window.marked) {
+            const links = msgDiv.querySelectorAll('a');
+            links.forEach((link) => {
+              link.setAttribute('target', '_blank');
+              link.setAttribute('rel', 'noopener noreferrer');
+            });
+          }
+
+          let spacer = document.getElementById('chat-dynamic-spacer');
+          if (!spacer) {
+            spacer = document.createElement('div');
+            spacer.id = 'chat-dynamic-spacer';
+            spacer.style.flexShrink = '0';
+          }
+          msgContainer.appendChild(spacer);
+          spacer.style.height = Math.max(0, msgContainer.clientHeight - userMsgDiv.clientHeight - msgDiv.clientHeight - 60) + 'px';
+
+          setTimeout(() => {
+            msgContainer.scrollTo({ top: userMsgDiv.offsetTop - 20, behavior: 'smooth' });
+          }, 10);
+
+          chatHistory.push({ role: 'user', content: key });
+          chatHistory.push({ role: 'model', content: cachedReply });
+          if (chatHistory.length > 10) chatHistory = chatHistory.slice(-10);
+          return;
+        }
+
+        sendChatMessage(key);
       }
 
       document.addEventListener('click', (e) => {
@@ -1386,26 +1455,25 @@ font-weight:800;color:white">AI</div>` }
         return msgDiv;
       }
 
-      async function sendChatMessage() {
+      async function sendChatMessage(presetKey = null) {
+        if (isChatBusy) return;
+        const isPreset = typeof presetKey === 'string' && presetKey.trim().length > 0;
         const input = document.getElementById('chat-input');
-        const text = input.value.trim();
+        const text = isPreset ? presetKey.trim() : (input ? input.value.trim() : '');
         if (!text) return;
 
-        // We keep suggestions visible or we can remove the hide block
-        // const suggestions = document.getElementById('chat-suggestions');
-        // if (suggestions) suggestions.style.display = 'none';
+        setChatBusy(true);
 
         const userMsgDiv = addMessage(text, 'user');
-        input.value = '';
+        if (!isPreset && input) {
+          input.value = '';
+        }
 
-        const sendBtn = document.getElementById('chat-send');
         const typing = document.getElementById('chat-typing');
-        
-        sendBtn.disabled = true;
-        typing.classList.add('visible');
+        if (typing) typing.classList.add('visible');
         
         const msgContainer = document.getElementById('chat-messages');
-        msgContainer.appendChild(typing); // move it to bottom
+        if (typing) msgContainer.appendChild(typing); // move it to bottom
         
         let spacer = document.getElementById('chat-dynamic-spacer');
         if (!spacer) {
@@ -1442,13 +1510,14 @@ font-weight:800;color:white">AI</div>` }
             throw new Error(errMsg);
           }
 
-          typing.classList.remove('visible');
+          if (typing) typing.classList.remove('visible');
           
           const msgDiv = document.createElement('div');
           msgDiv.className = `chat-msg bot`;
           msgContainer.appendChild(msgDiv);
           
           let botBubbleRawText = '';
+          let hadStreamError = false;
           
           const reader = res.body.getReader();
           const decoder = new TextDecoder("utf-8");
@@ -1464,7 +1533,10 @@ font-weight:800;color:white">AI</div>` }
                 if (!line.trim()) continue;
                 try {
                   const chunk = JSON.parse(line);
-                  if (chunk.error) botBubbleRawText += "\nError: " + chunk.error;
+                  if (chunk.error) {
+                    hadStreamError = true;
+                    botBubbleRawText += "\nError: " + chunk.error;
+                  }
                   if (chunk.text) botBubbleRawText += chunk.text;
                   if (chunk.reply) botBubbleRawText += (botBubbleRawText ? "\n" : "") + chunk.reply;
                   if (chunk.action && chunk.action.type === 'switchTheme') {
@@ -1487,7 +1559,10 @@ font-weight:800;color:white">AI</div>` }
               if (buffer.trim()) {
                 try {
                   const chunk = JSON.parse(buffer);
-                  if (chunk.error) botBubbleRawText += "\nError: " + chunk.error;
+                  if (chunk.error) {
+                    hadStreamError = true;
+                    botBubbleRawText += "\nError: " + chunk.error;
+                  }
                   if (chunk.text) botBubbleRawText += chunk.text;
                   if (chunk.reply) botBubbleRawText += (botBubbleRawText ? "\n" : "") + chunk.reply;
                   renderSafeMarkdown(msgDiv, botBubbleRawText);
@@ -1508,6 +1583,10 @@ font-weight:800;color:white">AI</div>` }
             });
           }
 
+          if (isPreset && !hadStreamError && isCacheableQuickReply(botBubbleRawText)) {
+            quickReplyCache.set(text, botBubbleRawText);
+          }
+
           // Update context
           chatHistory.push({ role: 'user', content: text });
           chatHistory.push({ role: 'model', content: botBubbleRawText });
@@ -1517,10 +1596,10 @@ font-weight:800;color:white">AI</div>` }
 
         } catch (error) {
           console.error(error);
-          typing.classList.remove('visible');
+          if (typing) typing.classList.remove('visible');
           addMessage("Oops! " + error.message, 'bot');
         } finally {
-          sendBtn.disabled = false;
+          setChatBusy(false);
         }
       }
     
@@ -1575,7 +1654,7 @@ function attachEvents() {
     if (input) input.addEventListener('keypress', handleEnter);
 
     const sendBtn = document.getElementById('chat-send');
-    if (sendBtn) sendBtn.addEventListener('click', sendChatMessage);
+    if (sendBtn) sendBtn.addEventListener('click', () => sendChatMessage());
 
     const skyTowerImg = document.getElementById('mdi-sky-tower-img');
     if (skyTowerImg) {
